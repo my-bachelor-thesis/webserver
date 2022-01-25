@@ -1,0 +1,58 @@
+drop table if exists users cascade;
+create table users
+(
+    id         serial primary key,
+    is_admin   boolean        not null,
+    first_name varchar        not null,
+    last_name  varchar        not null,
+    username   varchar unique not null,
+    email      varchar unique not null,
+    password   varchar        not null
+);
+
+drop table if exists tests cascade;
+create table tests
+(
+    id            serial primary key,
+    last_modified timestamp with time zone                             not null,
+    user_id       int default 0 references users on delete set default not null,
+    task_id       int references tasks on delete cascade,
+    language      varchar                                              not null,
+    code          varchar                                              not null
+);
+
+drop table if exists tasks cascade;
+create table tasks
+(
+    id            serial primary key,
+    author_id     int default 0 references users on delete set default not null,
+    approver_id   int default 0 references users on delete set default not null,
+    final_test_id int references tests on delete cascade,
+    title         varchar                                              not null,
+    difficulty    varchar                                              not null,
+    description   varchar                                              not null,
+    is_published  boolean                                              not null,
+    is_approved   boolean                                              not null,
+    added_on      timestamp with time zone                             not null,
+    text          varchar                                              not null
+);
+
+drop table if exists user_solutions cascade;
+create table user_solutions
+(
+    id               serial primary key,
+    user_id          int default 0 references users on delete set default not null,
+    task_id          int references tasks on delete cascade               not null,
+    test_id          int default 0 references tests on delete set default not null,
+    last_modified    timestamp with time zone                             not null,
+    language         varchar                                              not null,
+    code             varchar                                              not null,
+    exit_code        int                                                  not null,
+    output           varchar                                              not null,
+    compilation_time float4                                               not null,
+    real_time        float4                                               not null,
+    kernel_time      float4                                               not null,
+    user_time        float4                                               not null,
+    max_ram_usage    float4                                               not null,
+    binary_size      float4                                               not null
+);
