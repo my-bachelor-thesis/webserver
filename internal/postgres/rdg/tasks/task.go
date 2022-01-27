@@ -7,7 +7,7 @@ import (
 )
 
 const (
-	allFieldsWithoutId = "author_id, approver_id, final_test_id, title, difficulty, description, is_published, is_approved, added_on, text"
+	allFieldsWithoutId = "author_id, approver_id, title, difficulty, description, is_published, is_approved, added_on, text"
 	allFields          = "id, " + allFieldsWithoutId
 )
 
@@ -17,7 +17,6 @@ type Task struct {
 	Id          int    `json:"id"`
 	AuthorId    int    `json:"author_id"`
 	ApproverId  int    `json:"approver_id"`
-	FinalTestId int    `json:"final_test_id"`
 	Title       string `json:"title"`
 	Difficulty  string `json:"difficulty"`
 	Description string `json:"description"`
@@ -32,6 +31,6 @@ func Insert(task *Task) error {
 	insert into tasks %s
 	values (%s)
 	returning id`, allFieldsWithoutId, postgresutil.GeneratePlaceholder(allFieldsWithoutId))
-	return postgres.GetPool().QueryRow(postgres.GetCtx(), statement, task.AuthorId, task.ApproverId, task.FinalTestId, task.Title,
+	return postgres.GetPool().QueryRow(postgres.GetCtx(), statement, task.AuthorId, task.ApproverId, task.Title,
 		task.Difficulty, task.Description, task.IsPublished, task.IsApproved, task.AddedOn, task.Text).Scan(&task.Id)
 }

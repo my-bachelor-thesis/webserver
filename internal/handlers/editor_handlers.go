@@ -26,7 +26,7 @@ func TaskSolutionsTestsGet(c echo.Context) error {
 		return err
 	}
 	lang := c.QueryParam("lang")
-	data, err := user_solutions_with_tests.GetByLanguageAndTaskId(lang, taskId)
+	data, err := user_solutions_with_tests.GetByLanguage(lang, taskId, 1)
 	if err != nil {
 		return err
 	}

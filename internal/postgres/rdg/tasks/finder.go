@@ -31,7 +31,7 @@ func GetAllApprovedAndPublished() ([]*Task, error) {
 }
 
 func load(qr pgx.Row, task *Task) error {
-	err := qr.Scan(&task.Id, &task.AuthorId, &task.ApproverId, &task.FinalTestId, &task.Title, &task.Difficulty,
+	err := qr.Scan(&task.Id, &task.AuthorId, &task.ApproverId, &task.Title, &task.Difficulty,
 		&task.Description, &task.IsPublished, &task.IsApproved, &task.AddedOn, &task.Text)
 	return err
 }

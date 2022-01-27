@@ -22,8 +22,8 @@ func GetByTaskId(taskId int) (*InitialDataForEditor, error) {
 
 	languagesStatement := `
 	select
-		te.language
-	from tasks t join tests te on te.id = t.final_test_id and t.id = $1`
+		language
+	from tests where final = true and task_id = $1`
 	rows, err := postgres.GetPool().Query(postgres.GetCtx(), languagesStatement, taskId)
 	if err != nil {
 		return nil, err

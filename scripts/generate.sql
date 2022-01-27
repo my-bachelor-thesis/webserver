@@ -5,12 +5,18 @@ truncate table users, tests, tasks, user_solutions;
 -- insert default user
 
 insert into users (id, is_admin, first_name, last_name, username, email, password)
-values (0, false, 'Deleted', 'User', 'deleteduser', '', '');
+values (0, false, '', '', '', '', '');
+
+-- insert default task
+
+insert into tasks (id, author_id, approver_id, title, difficulty, description, is_published, is_approved, added_on,
+                   text)
+values (0, 0, 0, '', '', '', false, false, CURRENT_TIMESTAMP, '');
 
 -- insert default test
 
-insert into tests (id, last_modified, language, code)
-values (0, CURRENT_TIMESTAMP, '', '');
+insert into tests (id, last_modified, final, user_id, task_id, language, code)
+values (0, CURRENT_TIMESTAMP, false, 0, 0, '', '');
 
 -- restart all
 
@@ -31,8 +37,8 @@ values (true, 'Bill', 'The admin', 'admin', 'admin@bill.com',
 
 -- insert fizzbuzz into tests
 
-insert into tests (last_modified, language, code)
-values (CURRENT_TIMESTAMP, 'go', 'package main
+insert into tests (last_modified, final, user_id, task_id, language, code)
+values (CURRENT_TIMESTAMP, true, 1, 1, 'go', 'package main
 
 import "testing"
 
@@ -59,10 +65,9 @@ func TestFizzBuzz1000(t *testing.T) {
 
 -- insert fizzbuzz into tasks
 
-insert into tasks (author_id, approver_id, final_test_id, title, difficulty, description, is_published, is_approved,
-                   added_on, text)
-values (1, 1, 1, 'Fizz buzz', 'easy', 'Fizz buzz is a group word game for children to teach them about division', true,
-        true, '2022-01-10 20:10:02.047',
+insert into tasks (author_id, approver_id, title, difficulty, description, is_published, is_approved, added_on, text)
+values (1, 1, 'Fizz buzz', 'easy', 'Fizz buzz is a group word game for children to teach them about division',
+        true, true, CURRENT_TIMESTAMP,
         'Fizz buzz is a group word game for children to teach them about division. Players take turns to count incrementally, replacing any number divisible by three with the word "fizz", and any number divisible by five with the word "buzz".');
 
 -- insert fizzbuzz into user_solutions

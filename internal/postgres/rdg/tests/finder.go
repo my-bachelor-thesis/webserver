@@ -14,5 +14,6 @@ func GetById(id int) (*Test, error) {
 }
 
 func load(qr pgx.Row, test *Test) error {
-	return qr.Scan(&test.Id, &test.LastModified, &test.Language, &test.Code)
+	return qr.Scan(&test.Id, &test.LastModified, &test.Final, &test.UserId,
+		&test.TaskId, &test.Language, &test.Code)
 }
