@@ -31,7 +31,10 @@ func main() {
 	}
 
 	// disable all CORS
-	e.Use(middleware.CORS())
+	e.Use(middleware.CORSWithConfig(middleware.CORSConfig{
+		AllowOrigins: []string{"*"},
+		AllowHeaders: []string{echo.HeaderOrigin, echo.HeaderContentType, echo.HeaderAccept},
+	}))
 
 	allTemplates, err := getAllTemplates()
 	logAndExitIfErr(e, err)
@@ -51,8 +54,11 @@ func main() {
 	e.GET("/task", handlers.TaskGet)
 
 	// requests from editor
-	e.GET("/task/:id/init", handlers.TaskInitGet)
-	e.GET("/task/:id/solutions-tests", handlers.TaskSolutionsTestsGet)
+	e.GET("/init-data/:id", handlers.InitDataForEditorGet)
+	e.GET("/solutions-tests/:id/:lang", handlers.SolutionsAndTestsGet)
+	e.POST("/test/:lang", handlers.TestSolutionPost)
+	e.GET("/code-of-test/:id", handlers.CodeOfTestGet)
+	e.GET("/code-of-solution/:id", handlers.CodeOfSolutionGet)
 
 	// experimental requests
 	r := e.Group("/restricted")
