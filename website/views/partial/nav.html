@@ -1,8 +1,13 @@
 {{define "nav"}}
     <ul class="nav">
         <li><a href="/">Home</a>&emsp;</li>
-        <li><a href="/login">Login</a>&emsp;</li>
-        <li><a href="/register">Register</a>&emsp;</li>
+        {{if .isLoggedIn}}
+            <li><a href="/user_settings">Account settings</a>&emsp;</li>
+            <li><a href="/logout">Logout</a>&emsp;</li>
+        {{else}}
+            <li><a href="/login">Login</a>&emsp;</li>
+            <li><a href="/register">Register</a>&emsp;</li>
+        {{end}}
     </ul>
     <br>
 {{end}}

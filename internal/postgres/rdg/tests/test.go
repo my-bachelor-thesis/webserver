@@ -23,11 +23,12 @@ type Test struct {
 	Code         string `json:"code"`
 }
 
-func Insert(test *Test) error {
+func (test *Test) Insert() error {
+	placeholders := postgresutil.GeneratePlaceholdersAndReplace(allFieldsWithoutId, map[int]string{0: "CURRENT_TIMESTAMP"})
 	statement := fmt.Sprintf(`
-	insert into tests %s
+	insert into tests (%s)
 	values (%s)
-	returning id`, allFieldsWithoutId, postgresutil.GeneratePlaceholder(allFieldsWithoutId))
-	return postgres.GetPool().QueryRow(postgres.GetCtx(), statement, test.LastModified, test.Final, test.UserId,
-	test.TaskId, test.Language, test.Code).Scan(&test.Id)
+	returning id, to_char(last_modified, 'DD.MM.YY, HH24:MI:SS')`, allFieldsWithoutId, placeholders)
+	return postgres.GetPool().QueryRow(postgres.GetCtx(), statement, test.Final, test.UserId,
+		test.TaskId, test.Language, test.Code).Scan(&test.Id, &test.LastModified)
 }

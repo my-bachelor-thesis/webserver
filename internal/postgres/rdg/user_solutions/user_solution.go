@@ -31,12 +31,13 @@ type UserSolution struct {
 	BinarySize      float32 `json:"binary_size"`
 }
 
-func Insert(us *UserSolution) error {
+func (us *UserSolution) Insert() error {
+	placeholders := postgresutil.GeneratePlaceholdersAndReplace(allFieldsWithoutId, map[int]string{3: "CURRENT_TIMESTAMP"})
 	statement := fmt.Sprintf(`
-	insert into user_solutions %s
+	insert into user_solutions (%s)
 	values (%s)
-	returning id`, allFieldsWithoutId, postgresutil.GeneratePlaceholder(allFieldsWithoutId))
-	return postgres.GetPool().QueryRow(postgres.GetCtx(), statement, us.UserId, us.TaskId, us.TestId, us.LastModified,
+	returning id, to_char(last_modified, 'DD.MM.YY, HH24:MI:SS')`, allFieldsWithoutId, placeholders)
+	return postgres.GetPool().QueryRow(postgres.GetCtx(), statement, us.UserId, us.TaskId, us.TestId,
 		us.Language, us.Code, us.ExitCode, us.Output, us.CompilationTime, us.RealTime, us.KernelTime, us.UserTime,
-		us.MaxRamUsage, us.BinarySize).Scan(&us.Id)
+		us.MaxRamUsage, us.BinarySize).Scan(&us.Id, &us.LastModified)
 }

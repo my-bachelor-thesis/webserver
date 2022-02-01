@@ -25,9 +25,19 @@ func main() {
 	}
 
 	jwtConfig := middleware.JWTConfig{
-		Claims:     &handlers.JwtCustomClaims{},
-		SigningKey: []byte(config.GetInstance().JWTSecret),
+		Claims:      &handlers.JwtCustomClaims{},
+		SigningKey:  []byte(config.GetInstance().JWTSecret),
 		TokenLookup: "cookie:auth",
+		Skipper: func(c echo.Context) bool {
+			authCookie, err := c.Cookie("auth")
+			if err != nil {
+				return true
+			}
+			if authCookie.Value == "" {
+				return true
+			}
+			return false
+		},
 	}
 
 	// disable all CORS
@@ -35,6 +45,7 @@ func main() {
 		AllowOrigins: []string{"*"},
 		AllowHeaders: []string{echo.HeaderOrigin, echo.HeaderContentType, echo.HeaderAccept},
 	}))
+	e.Use(middleware.JWTWithConfig(jwtConfig))
 
 	allTemplates, err := getAllTemplates()
 	logAndExitIfErr(e, err)
@@ -52,18 +63,17 @@ func main() {
 	e.GET("/add_task", handlers.AddTaskGet)
 	e.POST("/add_task", handlers.AddTaskPost)
 	e.GET("/task", handlers.TaskGet)
+	e.GET("/logout", handlers.Logout)
 
 	// requests from editor
 	e.GET("/init-data/:id", handlers.InitDataForEditorGet)
 	e.GET("/solutions-tests/:id/:lang", handlers.SolutionsAndTestsGet)
-	e.POST("/test/:lang", handlers.TestSolutionPost)
+	e.POST("/test/:lang", handlers.OnlyTestPost)
+	e.POST("/test-and-save-solution/:lang", handlers.TestAndSaveSolutionPost)
+	e.POST("/test-and-save-test/:lang", handlers.TestAndSaveTestPost)
+	e.POST("/test-and-save-both/:lang", handlers.TestAndSaveBothPost)
 	e.GET("/code-of-test/:id", handlers.CodeOfTestGet)
 	e.GET("/code-of-solution/:id", handlers.CodeOfSolutionGet)
-
-	// experimental requests
-	r := e.Group("/restricted")
-	r.Use(middleware.JWTWithConfig(jwtConfig))
-	r.GET("/restricted", handlers.RestrictedGet)
 
 	// static
 	e.Static("/static", config.GetInstance().PublicDir)

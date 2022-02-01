@@ -1,7 +1,6 @@
 package handlers
 
 import (
-	"fmt"
 	"github.com/golang-jwt/jwt"
 	"github.com/labstack/echo/v4"
 	"golang.org/x/crypto/bcrypt"
@@ -13,7 +12,7 @@ import (
 )
 
 func LoginGet(c echo.Context) error {
-	return c.Render(http.StatusOK, "login.html", nil)
+	return c.Render(http.StatusOK, "login.html", newLoginData(c))
 }
 
 func LoginPost(c echo.Context) error {
@@ -58,13 +57,37 @@ func LoginPost(c echo.Context) error {
 	return c.Redirect(http.StatusSeeOther, "/")
 }
 
+func Logout(c echo.Context) error {
+	cookie := &http.Cookie{Name: "auth", Value: ""}
+	c.SetCookie(cookie)
+	return c.Redirect(http.StatusSeeOther, "/")
+}
+
 func RegisterGet(c echo.Context) error {
 	return c.Render(http.StatusOK, "register.html", nil)
 }
 
 func RegisterPost(c echo.Context) error {
-	// insert user from DB
-	return nil
+	user := &users.User{}
+	if err := c.Bind(user); err != nil {
+		return err
+	}
+
+	if user.Password != c.FormValue("password2") {
+		return echo.NewHTTPError(http.StatusBadRequest, "passwords don't match")
+	}
+
+	encrypted, err := bcrypt.GenerateFromPassword([]byte(user.Password), bcrypt.DefaultCost)
+	if err != nil {
+		return err
+	}
+	user.Password = string(encrypted)
+
+	if err = user.Insert(); err != nil {
+		return err
+	}
+
+	return c.Redirect(http.StatusSeeOther, "/")
 }
 
 func IndexGet(c echo.Context) error {
@@ -73,7 +96,7 @@ func IndexGet(c echo.Context) error {
 	if err != nil {
 		return err
 	}
-	data := make(map[string]interface{})
+	data := newLoginData(c)
 	data["tasks"] = published
 	return c.Render(http.StatusOK, "index.html", data)
 }
@@ -90,11 +113,4 @@ func AddTaskPost(c echo.Context) error {
 	// insert task into DB
 
 	return c.Redirect(http.StatusSeeOther, "/")
-}
-
-// will get removed
-
-func RestrictedGet(c echo.Context) error {
-	claims := getClaimsFromRequest(c)
-	return c.String(http.StatusOK, fmt.Sprintf("%#v", claims))
 }

@@ -30,7 +30,7 @@ func Insert(task *Task) error {
 	statement := fmt.Sprintf(`
 	insert into tasks %s
 	values (%s)
-	returning id`, allFieldsWithoutId, postgresutil.GeneratePlaceholder(allFieldsWithoutId))
+	returning id`, allFieldsWithoutId, postgresutil.GeneratePlaceholders(allFieldsWithoutId))
 	return postgres.GetPool().QueryRow(postgres.GetCtx(), statement, task.AuthorId, task.ApproverId, task.Title,
 		task.Difficulty, task.Description, task.IsPublished, task.IsApproved, task.AddedOn, task.Text).Scan(&task.Id)
 }
