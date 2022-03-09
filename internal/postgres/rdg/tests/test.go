@@ -7,7 +7,7 @@ import (
 )
 
 const (
-	allFieldsWithoutId = "last_modified, final, user_id, task_id, language, code"
+	allFieldsWithoutId = "last_modified, final, name, public, user_id, task_id, language, code"
 	allFields          = "id, " + allFieldsWithoutId
 )
 
@@ -17,6 +17,8 @@ type Test struct {
 	Id           int    `json:"id"`
 	LastModified string `json:"last_modified"`
 	Final        bool   `json:"final"`
+	Name         string `json:"name"`
+	Public       bool   `json:"public"`
 	UserId       int    `json:"user_id"`
 	TaskId       int    `json:"task_id"`
 	Language     string `json:"language"`
@@ -29,6 +31,6 @@ func (test *Test) Insert() error {
 	insert into tests (%s)
 	values (%s)
 	returning id, to_char(last_modified, 'DD.MM.YY, HH24:MI:SS')`, allFieldsWithoutId, placeholders)
-	return postgres.GetPool().QueryRow(postgres.GetCtx(), statement, test.Final, test.UserId,
-		test.TaskId, test.Language, test.Code).Scan(&test.Id, &test.LastModified)
+	return postgres.GetPool().QueryRow(postgres.GetCtx(), statement, test.Final, test.Name, test.Public,
+		test.UserId, test.TaskId, test.Language, test.Code).Scan(&test.Id, &test.LastModified)
 }

@@ -74,6 +74,8 @@ func main() {
 	e.POST("/test-and-save-both/:lang", handlers.TestAndSaveBothPost)
 	e.GET("/code-of-test/:id", handlers.CodeOfTestGet)
 	e.GET("/code-of-solution/:id", handlers.CodeOfSolutionGet)
+	e.POST("/change-name-in-test", handlers.UpdateUserSolutionNamePost)
+	e.POST("/change-name-in-usersolution", handlers.UpdateUserSolutionNamePost)
 
 	// static
 	e.Static("/static", config.GetInstance().PublicDir)

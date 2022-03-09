@@ -7,7 +7,7 @@ import (
 )
 
 const (
-	allFieldsWithoutId = "user_id, task_id, test_id, last_modified, language, code, exit_code, output, compilation_time, real_time, kernel_time, user_time, max_ram_usage, binary_size"
+	allFieldsWithoutId = "user_id, task_id, test_id, last_modified, language, name, public, code, exit_code, output, compilation_time, real_time, kernel_time, user_time, max_ram_usage, binary_size"
 	allFields          = "id, " + allFieldsWithoutId
 )
 
@@ -20,6 +20,8 @@ type UserSolution struct {
 	TestId          int     `json:"test_id"`
 	LastModified    string  `json:"last_modified"`
 	Language        string  `json:"language"`
+	Name            string  `json:"name"`
+	Public          bool    `json:"public"`
 	Code            string  `json:"code"`
 	ExitCode        int     `json:"exit_code"`
 	Output          string  `json:"output"`
@@ -38,6 +40,6 @@ func (us *UserSolution) Insert() error {
 	values (%s)
 	returning id, to_char(last_modified, 'DD.MM.YY, HH24:MI:SS')`, allFieldsWithoutId, placeholders)
 	return postgres.GetPool().QueryRow(postgres.GetCtx(), statement, us.UserId, us.TaskId, us.TestId,
-		us.Language, us.Code, us.ExitCode, us.Output, us.CompilationTime, us.RealTime, us.KernelTime, us.UserTime,
-		us.MaxRamUsage, us.BinarySize).Scan(&us.Id, &us.LastModified)
+		us.Language, us.Name, us.Public, us.Code, us.ExitCode, us.Output, us.CompilationTime, us.RealTime,
+		us.KernelTime, us.UserTime, us.MaxRamUsage, us.BinarySize).Scan(&us.Id, &us.LastModified)
 }

@@ -10,7 +10,7 @@ import (
 	"webserver/internal/postgres/rdg/user_solutions"
 )
 
-type TestIncomingJson struct {
+type RequestForTesting struct {
 	Solution   string `json:"solution"`
 	SolutionId int    `json:"solution_id"`
 	Test       string `json:"test"`
@@ -18,13 +18,14 @@ type TestIncomingJson struct {
 	TaskId     int    `json:"task_id"`
 }
 
-type TestOutGoingJson struct {
-	Solution *user_solutions.UserSolution `json:"solution"`
-	Test     *tests.Test                  `json:"test"`
+type ResultFromTesting struct {
+	Solution         *user_solutions.UserSolution `json:"solution"`
+	TestId           int                          `json:"test_id"`            // id of a test that was inserted into the db
+	TestLastModified string                       `json:"test_last_modified"` // last_modified of a test that was inserted into the db
 }
 
-func runSolutionsOnTesterApi(c echo.Context) (*user_solutions.UserSolution, *TestIncomingJson, error) {
-	incoming := &TestIncomingJson{}
+func runSolutionsOnTesterApi(c echo.Context) (*user_solutions.UserSolution, *RequestForTesting, error) {
+	incoming := &RequestForTesting{}
 	if err := c.Bind(incoming); err != nil {
 		return nil, nil, err
 	}
@@ -53,22 +54,8 @@ func OnlyTestPost(c echo.Context) error {
 	if err != nil {
 		return err
 	}
-	out := &TestOutGoingJson{Solution: us}
+	out := &ResultFromTesting{Solution: us}
 	return c.JSON(http.StatusOK, out)
-}
-func fillUserSolution(c echo.Context, us *user_solutions.UserSolution, incoming *TestIncomingJson, userId int) {
-	us.UserId = userId
-	us.TaskId = incoming.TaskId
-	us.TestId = incoming.TestId
-	us.Code = incoming.Solution
-	us.Language = c.Param("lang")
-}
-
-func fillTest(c echo.Context, test *tests.Test, incoming *TestIncomingJson, userId int) {
-	test.UserId = userId
-	test.Code = incoming.Test
-	test.TaskId = incoming.TaskId
-	test.Language = c.Param("lang")
 }
 
 func TestAndSaveSolutionPost(c echo.Context) error {
@@ -89,7 +76,7 @@ func TestAndSaveSolutionPost(c echo.Context) error {
 		return err
 	}
 	us.Code = ""
-	out := &TestOutGoingJson{Solution: us}
+	out := &ResultFromTesting{Solution: us}
 	return c.JSON(http.StatusOK, out)
 }
 
@@ -110,9 +97,9 @@ func TestAndSaveTestPost(c echo.Context) error {
 	if err = test.Insert(); err != nil {
 		return err
 	}
+	// don't send code back
 	us.Code = ""
-	test.Code = ""
-	out := &TestOutGoingJson{Test: test, Solution: us}
+	out := &ResultFromTesting{TestId: test.Id, TestLastModified: test.LastModified, Solution: us}
 	return c.JSON(http.StatusOK, out)
 }
 
@@ -142,6 +129,21 @@ func TestAndSaveBothPost(c echo.Context) error {
 
 	test.Code = ""
 	us.Code = ""
-	out := &TestOutGoingJson{Test: test, Solution: us}
+	out := &ResultFromTesting{TestId: test.Id, TestLastModified: test.LastModified, Solution: us}
 	return c.JSON(http.StatusOK, out)
+}
+
+func fillUserSolution(c echo.Context, us *user_solutions.UserSolution, incoming *RequestForTesting, userId int) {
+	us.UserId = userId
+	us.TaskId = incoming.TaskId
+	us.TestId = incoming.TestId
+	us.Code = incoming.Solution
+	us.Language = c.Param("lang")
+}
+
+func fillTest(c echo.Context, test *tests.Test, incoming *RequestForTesting, userId int) {
+	test.UserId = userId
+	test.Code = incoming.Test
+	test.TaskId = incoming.TaskId
+	test.Language = c.Param("lang")
 }

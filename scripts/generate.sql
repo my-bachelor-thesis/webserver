@@ -15,8 +15,8 @@ values (0, 0, 0, '', '', '', false, false, CURRENT_TIMESTAMP, '');
 
 -- insert default test
 
-insert into tests (id, last_modified, final, user_id, task_id, language, code)
-values (0, CURRENT_TIMESTAMP, false, 0, 0, '', '');
+insert into tests (id, last_modified, final, name, public, user_id, task_id, language, code)
+values (0, CURRENT_TIMESTAMP, false, '', false, 0, 0, '', '');
 
 -- restart all
 
@@ -51,8 +51,8 @@ values (1, 1, 'Get first 100 primes', 'easy', 'Rewrite already an existing solut
 
 -- insert fizzbuzz into tests
 
-insert into tests (last_modified, final, user_id, task_id, language, code)
-values (CURRENT_TIMESTAMP, true, 1, 1, 'go', 'package main
+insert into tests (last_modified, final, name, public, user_id, task_id, language, code)
+values (CURRENT_TIMESTAMP, true, 'test 1', true, 1, 1, 'go', 'package main
 
 import "testing"
 
@@ -79,8 +79,8 @@ func TestFizzBuzz1000(t *testing.T) {
 
 -- insert primes into tests
 
-insert into tests (last_modified, final, user_id, task_id, language, code)
-values (CURRENT_TIMESTAMP, true, 1, 2, 'go', 'package main
+insert into tests (last_modified, final, name, public, user_id, task_id, language, code)
+values (CURRENT_TIMESTAMP, true, 'final test', true, 1, 2, 'go', 'package main
 
 import "testing"
 
@@ -105,8 +105,8 @@ func TestPrimes(t *testing.T) {
 	}
 }');
 
-insert into tests (last_modified, final, user_id, task_id, language, code)
-values (CURRENT_TIMESTAMP, true, 1, 2, 'python', 'def test_primes():
+insert into tests (last_modified, final, name, public, user_id, task_id, language, code)
+values (CURRENT_TIMESTAMP, true, 'final test', true, 1, 2, 'python', 'def test_primes():
 	got = primes()
 	assert got[1] == 2
 	assert got[9] == 23
@@ -114,9 +114,9 @@ values (CURRENT_TIMESTAMP, true, 1, 2, 'python', 'def test_primes():
 
 -- insert fizzbuzz into user_solutions
 
-insert into user_solutions (user_id, task_id, test_id, last_modified, language, code, exit_code, output,
+insert into user_solutions (user_id, task_id, test_id, last_modified, language, name, public, code, exit_code, output,
                             compilation_time, real_time, kernel_time, user_time, max_ram_usage, binary_size)
-values (1, 1, 1, CURRENT_TIMESTAMP, 'go', 'package main
+values (1, 1, 1, CURRENT_TIMESTAMP, 'go', 'my solution 1', false, 'package main
 
 import (
 	"strconv"
@@ -140,9 +140,9 @@ func FizzBuzz1_000_000() []string {
 
 -- insert primes into user_solutions
 
-insert into user_solutions (user_id, task_id, test_id, last_modified, language, code, exit_code, output,
+insert into user_solutions (user_id, task_id, test_id, last_modified, language, name, public, code, exit_code, output,
                             compilation_time, real_time, kernel_time, user_time, max_ram_usage, binary_size)
-values (1, 2, 2, CURRENT_TIMESTAMP, 'go', 'package main
+values (1, 2, 2, CURRENT_TIMESTAMP, 'go', 'my solution go', false, 'package main
 
 import "math"
 
@@ -165,9 +165,9 @@ func primes() (res []int) {
 	return
 }', 0, '', 0, 0, 0, 0, 0, 0);
 
-insert into user_solutions (user_id, task_id, test_id, last_modified, language, code, exit_code, output,
+insert into user_solutions (user_id, task_id, test_id, last_modified, language, name, public, code, exit_code, output,
                             compilation_time, real_time, kernel_time, user_time, max_ram_usage, binary_size)
-values (1, 2, 3, CURRENT_TIMESTAMP, 'python', 'def is_prime(n):
+values (1, 2, 3, CURRENT_TIMESTAMP, 'python', 'python solution', false, 'def is_prime(n):
 	for i in range(2, int(n**1 / 2) + 1):
 		if n % i == 0:
 			return False
