@@ -11,7 +11,10 @@ const (
 	allFields          = "id, " + allFieldsWithoutId
 )
 
-var allFieldReplacedTimestamp = postgresutil.CallToCharOnTimestamp(allFields, "last_modified")
+var (
+	allFieldReplacedTimestamp             = postgresutil.CallToCharOnTimestamp(allFields, "last_modified")
+	placeHoldersWithTimestampAndWithoutId = postgresutil.GeneratePlaceholdersAndReplace(allFieldsWithoutId, map[int]string{3: "CURRENT_TIMESTAMP"})
+)
 
 type UserSolution struct {
 	Id              int     `json:"id"`
@@ -34,12 +37,36 @@ type UserSolution struct {
 }
 
 func (us *UserSolution) Insert() error {
-	placeholders := postgresutil.GeneratePlaceholdersAndReplace(allFieldsWithoutId, map[int]string{3: "CURRENT_TIMESTAMP"})
 	statement := fmt.Sprintf(`
 	insert into user_solutions (%s)
 	values (%s)
-	returning id, to_char(last_modified, 'DD.MM.YY, HH24:MI:SS')`, allFieldsWithoutId, placeholders)
-	return postgres.GetPool().QueryRow(postgres.GetCtx(), statement, us.UserId, us.TaskId, us.TestId,
+	returning id, to_char(last_modified, 'DD.MM.YY, HH24:MI:SS')`, allFieldsWithoutId, placeHoldersWithTimestampAndWithoutId)
+	return postgres.GetPool().QueryRow(postgres.GetCtx(), statement, getInsertFields(us)...).Scan(&us.Id, &us.LastModified)
+}
+
+func (us *UserSolution) UpdateName(name string) error {
+	statement := "update user_solutions set name = $1 where id = $2"
+	_, err := postgres.GetPool().Exec(postgres.GetCtx(), statement, name, us.Id)
+	return err
+}
+
+func InsertMany(us []*UserSolution) error {
+	statement := fmt.Sprintf(`
+	insert into user_solutions (%s)
+	values `, allFieldsWithoutId)
+	var vals []interface{}
+	for _, row := range us {
+		statement += fmt.Sprintf("(%s),", placeHoldersWithTimestampAndWithoutId)
+		vals = append(vals, getInsertFields(row)...)
+	}
+	statement = statement[0 : len(statement)-1]
+	_, err := postgres.GetPool().Exec(postgres.GetCtx(), statement, vals...)
+	return err
+}
+
+func getInsertFields(us *UserSolution) (res []interface{}) {
+	res = append(res, us.UserId, us.TaskId, us.TestId,
 		us.Language, us.Name, us.Public, us.Code, us.ExitCode, us.Output, us.CompilationTime, us.RealTime,
-		us.KernelTime, us.UserTime, us.MaxRamUsage, us.BinarySize).Scan(&us.Id, &us.LastModified)
+		us.KernelTime, us.UserTime, us.MaxRamUsage, us.BinarySize)
+	return
 }

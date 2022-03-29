@@ -1,9 +1,12 @@
 package postgresutil
 
 import (
+	"errors"
 	"fmt"
 	"strings"
 )
+
+var ErrNoRowsInResult = errors.New("no rows in result set")
 
 func GeneratePlaceholders(fields string) (placeHolders string) {
 	n := strings.Count(fields, ",") + 1
@@ -33,4 +36,11 @@ func GeneratePlaceholdersAndReplace(fields string, replace map[int]string) (plac
 
 func CallToCharOnTimestamp(s, fieldToReplace string) string {
 	return strings.Replace(s, fieldToReplace, fmt.Sprintf("to_char(%s, 'DD.MM.YY, HH24:MI:SS')", fieldToReplace), 1)
+}
+
+func IsNoRowsInResultErr(err error) bool{
+	if err == nil {
+		return false
+	}
+	return err.Error() == ErrNoRowsInResult.Error()
 }

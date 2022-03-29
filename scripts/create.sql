@@ -32,9 +32,7 @@ create table tasks
     approver_id  int default 0 references users on delete set default not null,
     title        varchar                                              not null,
     difficulty   varchar                                              not null,
-    description  varchar                                              not null,
     is_published boolean                                              not null,
-    is_approved  boolean                                              not null,
     added_on     timestamp with time zone                             not null,
     text         varchar                                              not null
 );

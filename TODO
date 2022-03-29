@@ -2,3 +2,4 @@
 - checkbox "expire login after an hour"
 - forbid logging into deleted user
 - unpublished task should not be accessed from direct url
+- email no unique, only username

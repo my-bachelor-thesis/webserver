@@ -4,19 +4,17 @@ import (
 	"fmt"
 	"github.com/jackc/pgx/v4"
 	"webserver/internal/postgres"
+	"webserver/pkg/postgresutil"
 )
 
 func GetById(id int) (*Test, error) {
+	if id == 0 {
+		return nil, postgresutil.ErrNoRowsInResult
+	}
 	statement := fmt.Sprintf("select %s from tests where id = $1", allFieldReplacedTimestamp)
 	test := Test{}
 	err := load(postgres.GetPool().QueryRow(postgres.GetCtx(), statement, id), &test)
 	return &test, err
-}
-
-func UpdateName(id int, name string) error {
-	statement := "update tests set name = $1 where id = $2"
-	_, err := postgres.GetPool().Exec(postgres.GetCtx(), statement, name, id)
-	return err
 }
 
 func load(qr pgx.Row, test *Test) error {

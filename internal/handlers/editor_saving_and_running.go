@@ -25,12 +25,12 @@ type ResultFromTesting struct {
 }
 
 func runSolutionsOnTesterApi(c echo.Context) (*user_solutions.UserSolution, *RequestForTesting, error) {
-	incoming := &RequestForTesting{}
-	if err := c.Bind(incoming); err != nil {
+	req := &RequestForTesting{}
+	if err := c.Bind(req); err != nil {
 		return nil, nil, err
 	}
 
-	postData, err := json.Marshal(incoming)
+	postData, err := json.Marshal(req)
 	if err != nil {
 		return nil, nil, err
 	}
@@ -46,7 +46,7 @@ func runSolutionsOnTesterApi(c echo.Context) (*user_solutions.UserSolution, *Req
 	if err = json.NewDecoder(resp.Body).Decode(us); err != nil {
 		return nil, nil, err
 	}
-	return us, incoming, nil
+	return us, req, nil
 }
 
 func OnlyTestPost(c echo.Context) error {
@@ -59,17 +59,17 @@ func OnlyTestPost(c echo.Context) error {
 }
 
 func TestAndSaveSolutionPost(c echo.Context) error {
-	us, incoming, err := runSolutionsOnTesterApi(c)
+	us, req, err := runSolutionsOnTesterApi(c)
 	if err != nil {
 		return err
 	}
 
-	userId, err := getUserId(c)
+	claims, err := getClaimsFromRequest(c)
 	if err != nil {
 		return err
 	}
 
-	fillUserSolution(c, us, incoming, userId)
+	fillUserSolution(c, us, req, claims.UserId)
 
 	if err = us.Insert(); err != nil {
 		fmt.Println(err)
@@ -81,18 +81,18 @@ func TestAndSaveSolutionPost(c echo.Context) error {
 }
 
 func TestAndSaveTestPost(c echo.Context) error {
-	us, incoming, err := runSolutionsOnTesterApi(c)
+	us, req, err := runSolutionsOnTesterApi(c)
 	if err != nil {
 		return err
 	}
 
-	userId, err := getUserId(c)
+	claims, err := getClaimsFromRequest(c)
 	if err != nil {
 		return err
 	}
 
 	test := &tests.Test{}
-	fillTest(c, test, incoming, userId)
+	fillTest(c, test, req, claims.UserId)
 
 	if err = test.Insert(); err != nil {
 		return err
@@ -104,24 +104,24 @@ func TestAndSaveTestPost(c echo.Context) error {
 }
 
 func TestAndSaveBothPost(c echo.Context) error {
-	us, incoming, err := runSolutionsOnTesterApi(c)
+	us, req, err := runSolutionsOnTesterApi(c)
 	if err != nil {
 		return err
 	}
 
-	userId, err := getUserId(c)
+	claims, err := getClaimsFromRequest(c)
 	if err != nil {
 		return err
 	}
 
-	fillUserSolution(c, us, incoming, userId)
+	fillUserSolution(c, us, req, claims.UserId)
 
 	if err = us.Insert(); err != nil {
 		return err
 	}
 
 	test := &tests.Test{}
-	fillTest(c, test, incoming, userId)
+	fillTest(c, test, req, claims.UserId)
 
 	if err = test.Insert(); err != nil {
 		return err
@@ -133,17 +133,17 @@ func TestAndSaveBothPost(c echo.Context) error {
 	return c.JSON(http.StatusOK, out)
 }
 
-func fillUserSolution(c echo.Context, us *user_solutions.UserSolution, incoming *RequestForTesting, userId int) {
+func fillUserSolution(c echo.Context, us *user_solutions.UserSolution, req *RequestForTesting, userId int) {
 	us.UserId = userId
-	us.TaskId = incoming.TaskId
-	us.TestId = incoming.TestId
-	us.Code = incoming.Solution
+	us.TaskId = req.TaskId
+	us.TestId = req.TestId
+	us.Code = req.Solution
 	us.Language = c.Param("lang")
 }
 
-func fillTest(c echo.Context, test *tests.Test, incoming *RequestForTesting, userId int) {
+func fillTest(c echo.Context, test *tests.Test, req *RequestForTesting, userId int) {
 	test.UserId = userId
-	test.Code = incoming.Test
-	test.TaskId = incoming.TaskId
+	test.Code = req.Test
+	test.TaskId = req.TaskId
 	test.Language = c.Param("lang")
 }

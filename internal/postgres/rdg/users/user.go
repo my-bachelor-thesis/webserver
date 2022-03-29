@@ -12,7 +12,7 @@ const (
 )
 
 type User struct {
-	Id        int    `json:"id"`
+	Id        int    `json:"id"` // default is 0
 	IsAdmin   bool   `json:"is_admin" form:"is_admin"`
 	FirstName string `json:"first_name" form:"first_name"`
 	LastName  string `json:"last_name" form:"last_name"`

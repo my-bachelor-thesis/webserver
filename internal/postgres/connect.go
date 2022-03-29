@@ -3,7 +3,6 @@ package postgres
 import (
 	"context"
 	"github.com/jackc/pgx/v4/pgxpool"
-	"log"
 	"webserver/internal/config"
 )
 
@@ -12,16 +11,10 @@ var (
 	ctx  = context.Background()
 )
 
-func init() {
-	pool = CreateDbPool()
-}
-
-func CreateDbPool() *pgxpool.Pool {
-	dbpool, err := pgxpool.Connect(context.Background(), config.GetInstance().PostgresURL)
-	if err != nil {
-		log.Fatal(err)
-	}
-	return dbpool
+func CreateDbPool() error {
+	var err error
+	pool, err = pgxpool.Connect(context.Background(), config.GetInstance().PostgresURL)
+	return err
 }
 
 func ClosePool() {

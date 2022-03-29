@@ -27,12 +27,12 @@ func SolutionsAndTestsGet(c echo.Context) error {
 	if err != nil {
 		return err
 	}
-	userId, err := getUserId(c)
+	claims, err := getClaimsFromRequest(c)
 	if err != nil {
 		return err
 	}
 	lang := c.Param("lang")
-	data, err := user_solutions_with_tests.GetByLanguage(lang, taskId, userId)
+	data, err := user_solutions_with_tests.GetByLanguage(lang, taskId, claims.UserId)
 	if err != nil {
 		return err
 	}
@@ -61,26 +61,4 @@ func CodeOfSolutionGet(c echo.Context) error {
 		return err
 	}
 	return c.JSON(http.StatusOK, us)
-}
-
-type updateNameFunc func(int, string) error
-
-func updateName(c echo.Context, f updateNameFunc) error {
-	type incoming struct {
-		name string
-		id   int
-	}
-	in := &incoming{}
-	if err := c.Bind(in); err != nil {
-		return err
-	}
-	return f(in.id, in.name)
-}
-
-func UpdateTestNamePost(c echo.Context) error {
-	return updateName(c, tests.UpdateName)
-}
-
-func UpdateUserSolutionNamePost(c echo.Context) error {
-	return updateName(c, user_solutions.UpdateName)
 }

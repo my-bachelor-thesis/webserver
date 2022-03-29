@@ -1,13 +1,17 @@
 package main
 
 import (
+	"fmt"
 	"github.com/labstack/echo/v4"
 	"github.com/labstack/echo/v4/middleware"
 	"log"
 	"runtime"
 	"webserver/internal/config"
 	"webserver/internal/handlers"
+	"webserver/internal/postgres"
 )
+
+var frontendEndpoints = [...]string{"/", "add-task", "task", "login", "register", "logout", "about", "account-settings", "not-published", "approve"}
 
 func init() {
 	if runtime.GOOS != "linux" {
@@ -18,8 +22,13 @@ func init() {
 func main() {
 	var e = echo.New()
 
+	logAndExitIfErr(e, config.LoadConfig())
+	logAndExitIfErr(e, postgres.CreateDbPool())
+	defer postgres.ClosePool()
+
 	if config.GetInstance().IsProduction {
 		e.Use(middleware.Logger())
+		e.Use(middleware.Recover())
 	} else {
 		e.Debug = true
 	}
@@ -30,42 +39,40 @@ func main() {
 		TokenLookup: "cookie:auth",
 		Skipper: func(c echo.Context) bool {
 			authCookie, err := c.Cookie("auth")
-			if err != nil {
-				return true
-			}
-			if authCookie.Value == "" {
+			if err != nil || authCookie.Value == "" {
 				return true
 			}
 			return false
 		},
 	}
+	e.Use(middleware.JWTWithConfig(jwtConfig))
 
 	// disable all CORS
 	e.Use(middleware.CORSWithConfig(middleware.CORSConfig{
 		AllowOrigins: []string{"*"},
 		AllowHeaders: []string{echo.HeaderOrigin, echo.HeaderContentType, echo.HeaderAccept},
 	}))
-	e.Use(middleware.JWTWithConfig(jwtConfig))
 
-	allTemplates, err := getAllTemplates()
-	logAndExitIfErr(e, err)
-	parsedTemplates := &Template{
-		templates: allTemplates,
+	for _, endpoint := range frontendEndpoints {
+		e.File(endpoint, "web/frontend/public/index.html")
 	}
-	e.Renderer = parsedTemplates
+	e.Static("/", "web/frontend/public/")
 
 	// requests from website
-	e.GET("/", handlers.IndexGet)
-	e.GET("/login", handlers.LoginGet)
-	e.POST("/login", handlers.LoginPost)
-	e.GET("/register", handlers.RegisterGet)
-	e.POST("/register", handlers.RegisterPost)
-	e.GET("/add_task", handlers.AddTaskGet)
-	e.POST("/add_task", handlers.AddTaskPost)
-	e.GET("/task", handlers.TaskGet)
-	e.GET("/logout", handlers.Logout)
+	//e.GET("/", handlers.IndexGet)
+	//e.GET("/login", handlers.LoginGet)
+	//e.POST("/login", handlers.LoginPost)
+	//e.GET("/register", handlers.RegisterGet)
+	//e.POST("/register", handlers.RegisterPost)
+	//e.GET("/add_task", handlers.AddTaskGet)
+	//e.POST("/add_task", handlers.AddTaskPost)
+	//e.GET("/task", handlers.TaskGet)
+	//e.GET("/logout", handlers.Logout)
 
-	// requests from editor
+	// requests from home
+	e.GET("/home/all-tasks", handlers.AllTasksGet)
+
+	// requests from editor TODO: all prefix editor
 	e.GET("/init-data/:id", handlers.InitDataForEditorGet)
 	e.GET("/solutions-tests/:id/:lang", handlers.SolutionsAndTestsGet)
 	e.POST("/test/:lang", handlers.OnlyTestPost)
@@ -77,10 +84,26 @@ func main() {
 	e.POST("/change-name-in-test", handlers.UpdateUserSolutionNamePost)
 	e.POST("/change-name-in-usersolution", handlers.UpdateUserSolutionNamePost)
 
-	// static
-	e.Static("/static", config.GetInstance().PublicDir)
+	// from register
+	e.GET("/register/is-valid-username/:username", handlers.IsValidUsername)
+	e.POST("/register/form", handlers.RegisterPost)
 
-	e.Logger.Fatal(e.Start(config.GetInstance().Port))
+	// from login
+	e.POST("/login/form", handlers.LoginPost)
+
+	// TODO: change to path/action
+	// from add-task
+	e.POST("/add-task/form", handlers.AddPostPost)
+
+	// publish
+	e.GET("/not-published/all", handlers.AllTasksUnpublishedGet)
+	e.POST("/not-published/publish", handlers.PublishTaskPost)
+
+	// approve
+	e.GET("/not-approved/all", handlers.AllTasksUnapprovedGet)
+	e.POST("/not-approved/approve", handlers.ApproveTaskPost)
+
+	e.Logger.Fatal(e.Start(fmt.Sprintf(":%d", config.GetInstance().Port)))
 }
 
 func logAndExitIfErr(e *echo.Echo, err error) {

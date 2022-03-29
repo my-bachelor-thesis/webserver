@@ -3,39 +3,26 @@ package config
 import (
 	"github.com/joho/godotenv"
 	"github.com/kelseyhightower/envconfig"
-	"log"
 )
 
-const envFile = "configs/.env"
+const envFile = ".env"
 
 var config Config
 
-func init() {
-	var err error
-	if config, err = newConfig(); err != nil {
-		log.Fatal(err)
-	}
-}
-
 type Config struct {
-	TemplatesDir    string
-	PublicDir       string
-	SvelteIndexPath string
-	SveltePublicDir string
-	Port            string
-	PostgresURL     string
-	JWTSecret       string
-	IsProduction    bool
+	Port          int
+	IsProduction  bool
+	PostgresURL   string
+	JWTSecret     string
+	TesterApiIp   string
+	TesterApiPort int
 }
 
-func newConfig() (Config, error) {
-	res := Config{}
-	err := godotenv.Load(envFile)
-	if err != nil {
-		return res, err
+func LoadConfig() error {
+	if err := godotenv.Load(envFile); err != nil {
+		return err
 	}
-	err = envconfig.Process("webserver", &res)
-	return res, err
+	return envconfig.Process("webserver", &config)
 }
 
 func GetInstance() Config {

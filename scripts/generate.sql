@@ -9,9 +9,9 @@ values (0, false, '', '', '', '', '');
 
 -- insert default task
 
-insert into tasks (id, author_id, approver_id, title, difficulty, description, is_published, is_approved, added_on,
+insert into tasks (id, author_id, approver_id, title, difficulty, is_published, added_on,
                    text)
-values (0, 0, 0, '', '', '', false, false, CURRENT_TIMESTAMP, '');
+values (0, 0, 0, '', '', false, CURRENT_TIMESTAMP, '');
 
 -- insert default test
 
@@ -37,22 +37,22 @@ values (true, 'Bill', 'The admin', 'admin', 'admin@bill.com',
 
 -- insert fizzbuzz into tasks
 
-insert into tasks (author_id, approver_id, title, difficulty, description, is_published, is_approved, added_on, text)
-values (1, 1, 'Fizz buzz', 'easy', 'Fizz buzz is a group word game for children to teach them about division',
-        true, true, CURRENT_TIMESTAMP,
+insert into tasks (author_id, approver_id, title, difficulty, is_published, added_on, text)
+values (1, 1, 'Fizz buzz', 'easy',
+        true, CURRENT_TIMESTAMP,
         'Fizz buzz is a group word game for children to teach them about division. Players take turns to count incrementally, replacing any number divisible by three with the word "fizz", and any number divisible by five with the word "buzz".');
 
 -- insert primes into tasks
 
-insert into tasks (author_id, approver_id, title, difficulty, description, is_published, is_approved, added_on, text)
-values (1, 1, 'Get first 100 primes', 'easy', 'Rewrite already an existing solution in Go into Python',
-        true, true, CURRENT_TIMESTAMP,
+insert into tasks (author_id, approver_id, title, difficulty, is_published, added_on, text)
+values (1, 1, 'Get first 100 primes', 'easy',
+        true, CURRENT_TIMESTAMP,
         'Rewrite already an existing solution in Go into Python');
 
 -- insert fizzbuzz into tests
 
 insert into tests (last_modified, final, name, public, user_id, task_id, language, code)
-values (CURRENT_TIMESTAMP, true, 'test 1', true, 1, 1, 'go', 'package main
+values (CURRENT_TIMESTAMP, true, 'final test', true, 1, 1, 'go', 'package main
 
 import "testing"
 
@@ -167,7 +167,7 @@ func primes() (res []int) {
 
 insert into user_solutions (user_id, task_id, test_id, last_modified, language, name, public, code, exit_code, output,
                             compilation_time, real_time, kernel_time, user_time, max_ram_usage, binary_size)
-values (1, 2, 3, CURRENT_TIMESTAMP, 'python', 'python solution', false, 'def is_prime(n):
+values (1, 2, 3, CURRENT_TIMESTAMP, 'python', 'my python solution', false, 'def is_prime(n):
 	for i in range(2, int(n**1 / 2) + 1):
 		if n % i == 0:
 			return False
