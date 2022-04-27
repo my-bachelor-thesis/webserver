@@ -19,13 +19,13 @@ func GetByLanguage(language string, taskId int, userId int) (*UserSolutionsWithT
 		return nil, err
 	}
 	var id int
-	var date string
+	var lastModified string
 	var exitCode int
 	for rows.Next() {
-		if err = rows.Scan(&id, &date, &exitCode); err != nil {
+		if err = rows.Scan(&id, &lastModified, &exitCode); err != nil {
 			return nil, err
 		}
-		res.Solutions[id] = Solution{Date: date, ExitCode: exitCode}
+		res.Solutions[id] = Solution{LastModified: lastModified, ExitCode: exitCode}
 	}
 
 	testsStatement := `
@@ -41,10 +41,10 @@ func GetByLanguage(language string, taskId int, userId int) (*UserSolutionsWithT
 	}
 	var final bool
 	for rows.Next() {
-		if err = rows.Scan(&id, &date, &final); err != nil {
+		if err = rows.Scan(&id, &lastModified, &final); err != nil {
 			return nil, err
 		}
-		res.Tests[id] = Test{Date: date, Final: final}
+		res.Tests[id] = Test{LastModified: lastModified, Final: final}
 	}
 
 	return res, err

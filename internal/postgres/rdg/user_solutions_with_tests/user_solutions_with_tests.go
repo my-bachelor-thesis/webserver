@@ -1,17 +1,17 @@
 package user_solutions_with_tests
 
 type Test struct {
-	Date   string `json:"date"`
-	Final  bool   `json:"final"`
-	Name   string `json:"name"`
-	Public bool   `json:"public"`
+	LastModified string `json:"last_modified"`
+	Final        bool   `json:"final"`
+	Name         string `json:"name"`
+	Public       bool   `json:"public"`
 }
 
 type Solution struct {
-	Date     string `json:"date"`
-	ExitCode int    `json:"exit_code"`
-	Name     string `json:"name"`
-	Public   bool   `json:"public"`
+	LastModified string `json:"last_modified"`
+	ExitCode     int    `json:"exit_code"`
+	Name         string `json:"name"`
+	Public       bool   `json:"public"`
 }
 
 type UserSolutionsWithTests struct {
