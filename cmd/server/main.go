@@ -81,8 +81,8 @@ func main() {
 	e.POST("/test-and-save-both/:lang", handlers.TestAndSaveBothPost)
 	e.GET("/code-of-test/:id", handlers.CodeOfTestGet)
 	e.GET("/code-of-solution/:id", handlers.CodeOfSolutionGet)
-	e.POST("/change-name-in-test", handlers.UpdateUserSolutionNamePost)
-	e.POST("/change-name-in-usersolution", handlers.UpdateUserSolutionNamePost)
+	e.POST("editor/change-name-in-test", handlers.UpdateTestNamePost)
+	e.POST("editor/change-name-in-usersolution", handlers.UpdateUserSolutionNamePost)
 
 	// from register
 	e.GET("/register/is-valid-username/:username", handlers.IsValidUsername)
