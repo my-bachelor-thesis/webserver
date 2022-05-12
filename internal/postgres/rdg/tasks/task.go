@@ -40,14 +40,14 @@ func (task *Task) Publish() error {
 	return err
 }
 
-func (task *Task) Approve(approverId int) error {
+func (task *Task) Approve() error {
 	statement := "update tasks set approver_id = $1 where id = $2"
-	_, err := postgres.GetPool().Exec(postgres.GetCtx(), statement, approverId, task.Id)
+	_, err := postgres.GetPool().Exec(postgres.GetCtx(), statement, task.ApproverId, task.Id)
 	return err
 }
 
-func (task *Task) ApproveAndPublish(approverId int) error {
+func (task *Task) ApproveAndPublish() error {
 	statement := "update tasks set approver_id = $1, is_published = true where id = $2"
-	_, err := postgres.GetPool().Exec(postgres.GetCtx(), statement, approverId, task.Id)
+	_, err := postgres.GetPool().Exec(postgres.GetCtx(), statement, task.ApproverId, task.Id)
 	return err
 }

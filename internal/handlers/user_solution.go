@@ -14,5 +14,6 @@ func UpdateUserSolutionNamePost(c echo.Context) error {
 	if us.Public {
 		return c.JSON(http.StatusForbidden, "can't update this user solution")
 	}
-	return us.UpdateName(req.Name)
+	us.Name = req.Name
+	return us.UpdateName()
 }

@@ -1,6 +1,6 @@
 -- truncate all
 
-truncate table users, tests, tasks, user_solutions;
+truncate table user_solutions_test_ids, last_opened ,users, tests, tasks, user_solutions;
 
 -- insert default user
 
@@ -17,6 +17,13 @@ values (0, 0, 0, '', '', false, CURRENT_TIMESTAMP, '');
 
 insert into tests (id, last_modified, final, name, public, user_id, task_id, language, code)
 values (0, CURRENT_TIMESTAMP, false, '', false, 0, 0, '', '');
+
+-- insert default user solution
+
+insert into user_solutions
+(id, user_id, task_id, last_modified, language, name, public, code, exit_code, output, compilation_time, real_time,
+ kernel_time, user_time, max_ram_usage, binary_size)
+values (0, 0, 0, CURRENT_TIMESTAMP, '', '', false, '', 0, '', 0, 0, 0, 0, 0, 0);
 
 -- restart all
 
@@ -114,9 +121,9 @@ values (CURRENT_TIMESTAMP, true, 'final test', true, 1, 2, 'python', 'def test_p
 
 -- insert fizzbuzz into user_solutions
 
-insert into user_solutions (user_id, task_id, test_id, last_modified, language, name, public, code, exit_code, output,
+insert into user_solutions (user_id, task_id, last_modified, language, name, public, code, exit_code, output,
                             compilation_time, real_time, kernel_time, user_time, max_ram_usage, binary_size)
-values (1, 1, 1, CURRENT_TIMESTAMP, 'go', 'my solution 1', false, 'package main
+values (1, 1, CURRENT_TIMESTAMP, 'go', 'my solution 1', false, 'package main
 
 import (
 	"strconv"
@@ -140,9 +147,9 @@ func FizzBuzz1_000_000() []string {
 
 -- insert primes into user_solutions
 
-insert into user_solutions (user_id, task_id, test_id, last_modified, language, name, public, code, exit_code, output,
+insert into user_solutions (user_id, task_id, last_modified, language, name, public, code, exit_code, output,
                             compilation_time, real_time, kernel_time, user_time, max_ram_usage, binary_size)
-values (1, 2, 2, CURRENT_TIMESTAMP, 'go', 'my solution go', false, 'package main
+values (1, 2, CURRENT_TIMESTAMP, 'go', 'my solution go', false, 'package main
 
 import "math"
 
@@ -165,9 +172,9 @@ func primes() (res []int) {
 	return
 }', 0, '', 0, 0, 0, 0, 0, 0);
 
-insert into user_solutions (user_id, task_id, test_id, last_modified, language, name, public, code, exit_code, output,
+insert into user_solutions (user_id, task_id, last_modified, language, name, public, code, exit_code, output,
                             compilation_time, real_time, kernel_time, user_time, max_ram_usage, binary_size)
-values (1, 2, 3, CURRENT_TIMESTAMP, 'python', 'my python solution', false, 'def is_prime(n):
+values (1, 2, CURRENT_TIMESTAMP, 'python', 'my python solution', false, 'def is_prime(n):
 	for i in range(2, int(n**1 / 2) + 1):
 		if n % i == 0:
 			return False

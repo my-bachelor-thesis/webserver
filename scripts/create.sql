@@ -19,7 +19,7 @@ create table tests
     name          varchar                                              not null,
     public        boolean                                              not null,
     user_id       int default 0 references users on delete set default not null,
-    task_id       int references tasks on delete cascade,
+    task_id       int references tasks on delete cascade               not null,
     language      varchar                                              not null,
     code          varchar                                              not null
 );
@@ -43,7 +43,6 @@ create table user_solutions
     id               serial primary key,
     user_id          int default 0 references users on delete set default not null,
     task_id          int references tasks on delete cascade               not null,
-    test_id          int default 0 references tests on delete set default not null,
     last_modified    timestamp with time zone                             not null,
     language         varchar                                              not null,
     name             varchar                                              not null,
@@ -57,4 +56,23 @@ create table user_solutions
     user_time        float4                                               not null,
     max_ram_usage    float4                                               not null,
     binary_size      float4                                               not null
+);
+
+drop table if exists user_solutions_test_ids cascade;
+create table user_solutions_test_ids
+(
+    user_solution_id int references user_solutions on delete cascade not null,
+    test_id          int references tests on delete cascade          not null,
+    user_id          int references users on delete cascade          not null
+);
+
+drop table if exists last_opened cascade;
+create table last_opened
+(
+    user_id                         int references users on delete cascade          not null,
+    task_id                         int references tasks on delete cascade          not null,
+    user_solution_id_for_language_1 int references user_solutions on delete cascade not null,
+    user_solution_id_for_language_2 int references user_solutions on delete cascade not null,
+    language_1                      varchar                                         not null,
+    language_2                      varchar                                         not null
 );

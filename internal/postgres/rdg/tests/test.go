@@ -36,9 +36,9 @@ func (test *Test) Insert() error {
 	return postgres.GetPool().QueryRow(postgres.GetCtx(), statement, getInsertFields(test)...).Scan(&test.Id, &test.LastModified)
 }
 
-func (test *Test) UpdateName(name string) error {
+func (test *Test) UpdateName() error {
 	statement := "update tests set name = $1 where id = $2"
-	_, err := postgres.GetPool().Exec(postgres.GetCtx(), statement, name, test.Id)
+	_, err := postgres.GetPool().Exec(postgres.GetCtx(), statement, test.Name, test.Id)
 	return err
 }
 

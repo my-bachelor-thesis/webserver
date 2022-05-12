@@ -41,7 +41,8 @@ func PublishTaskPost(c echo.Context) error {
 		return err
 	}
 	if claims.IsAdmin {
-		return task.ApproveAndPublish(claims.UserId)
+		task.ApproverId = claims.UserId
+		return task.ApproveAndPublish()
 	}
 	return task.Publish()
 }
@@ -66,7 +67,8 @@ func ApproveTaskPost(c echo.Context) error {
 	if err != nil {
 		return err
 	}
-	return task.Approve(claims.UserId)
+	task.ApproverId = claims.UserId
+	return task.Approve()
 }
 
 func AddPostPost(c echo.Context) error {

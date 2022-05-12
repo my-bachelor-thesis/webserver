@@ -27,8 +27,8 @@ func main() {
 	defer postgres.ClosePool()
 
 	if config.GetInstance().IsProduction {
-		e.Use(middleware.Logger())
 		e.Use(middleware.Recover())
+		e.Use(middleware.Logger())
 	} else {
 		e.Debug = true
 	}
@@ -58,17 +58,6 @@ func main() {
 	}
 	e.Static("/", "web/frontend/public/")
 
-	// requests from website
-	//e.GET("/", handlers.IndexGet)
-	//e.GET("/login", handlers.LoginGet)
-	//e.POST("/login", handlers.LoginPost)
-	//e.GET("/register", handlers.RegisterGet)
-	//e.POST("/register", handlers.RegisterPost)
-	//e.GET("/add_task", handlers.AddTaskGet)
-	//e.POST("/add_task", handlers.AddTaskPost)
-	//e.GET("/task", handlers.TaskGet)
-	//e.GET("/logout", handlers.Logout)
-
 	// requests from home
 	e.GET("/home/all-tasks", handlers.AllTasksGet)
 
@@ -81,8 +70,11 @@ func main() {
 	e.POST("/test-and-save-both/:lang", handlers.TestAndSaveBothPost)
 	e.GET("/code-of-test/:id", handlers.CodeOfTestGet)
 	e.GET("/code-of-solution/:id", handlers.CodeOfSolutionGet)
-	e.POST("editor/change-name-in-test", handlers.UpdateTestNamePost)
-	e.POST("editor/change-name-in-usersolution", handlers.UpdateUserSolutionNamePost)
+	e.POST("/editor/change-name-in-test", handlers.UpdateTestNamePost)
+	e.POST("/editor/change-name-in-usersolution", handlers.UpdateUserSolutionNamePost)
+	e.POST("/editor/change-testid-for-usersolution", handlers.UpdateTestIdForUserSolutionPost)
+	e.POST("/editor/change-last-opened", handlers.UpdateLastOpenedPost)
+	e.GET("/editor/get-last-opened/:task-id", handlers.LastOpenedGet)
 
 	// from register
 	e.GET("/register/is-valid-username/:username", handlers.IsValidUsername)

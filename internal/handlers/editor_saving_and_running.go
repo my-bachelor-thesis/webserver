@@ -11,11 +11,10 @@ import (
 )
 
 type RequestForTesting struct {
-	Solution   string `json:"solution"`
-	SolutionId int    `json:"solution_id"`
-	Test       string `json:"test"`
-	TestId     int    `json:"test_id"`
-	TaskId     int    `json:"task_id"`
+	Solution string `json:"solution"`
+	Test     string `json:"test"`
+	TaskId   int    `json:"task_id"`
+	HashId   string `json:"hash_id"`
 }
 
 type ResultFromTesting struct {
@@ -136,7 +135,6 @@ func TestAndSaveBothPost(c echo.Context) error {
 func fillUserSolution(c echo.Context, us *user_solutions.UserSolution, req *RequestForTesting, userId int) {
 	us.UserId = userId
 	us.TaskId = req.TaskId
-	us.TestId = req.TestId
 	us.Code = req.Solution
 	us.Language = c.Param("lang")
 }
