@@ -11,10 +11,10 @@ type Solutions struct {
 }
 
 type UserSolutionsWithTests struct {
-	Tests     map[int]tests.Test `json:"tests"`
-	Solutions map[int]Solutions  `json:"solutions"`
+	Tests     map[int]*tests.Test `json:"tests"`
+	Solutions map[int]*Solutions  `json:"solutions"`
 }
 
 func NewUserSolutionsWithTests() *UserSolutionsWithTests {
-	return &UserSolutionsWithTests{Tests: map[int]tests.Test{}, Solutions: map[int]Solutions{}}
+	return &UserSolutionsWithTests{Tests: map[int]*tests.Test{}, Solutions: map[int]*Solutions{}}
 }

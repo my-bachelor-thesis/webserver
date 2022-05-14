@@ -14,6 +14,7 @@ func GetByLanguage(language string, taskId int, userId int) (*UserSolutionsWithT
 		us.id,
 		to_char(us.last_modified, 'DD.MM.YY, HH24:MI:SS'),
 		us.name,
+		us.public,
 		coalesce((select ust.test_id from user_solutions_tests ust where ust.user_solution_id = us.id and ust.user_id = $1), 0) as test_id
 	from user_solutions us where us.user_id = $2 and us.language = $3 and us.task_id = $4 order by us.last_modified desc`
 
@@ -24,11 +25,11 @@ func GetByLanguage(language string, taskId int, userId int) (*UserSolutionsWithT
 	var us Solutions
 	var testId int
 	for rows.Next() {
-		if err = rows.Scan(&us.Id, &us.LastModified, &us.Name, &testId); err != nil {
+		if err = rows.Scan(&us.Id, &us.LastModified, &us.Name, &us.Public, &testId); err != nil {
 			return nil, err
 		}
-		res.Solutions[us.Id] = Solutions{
-			UserSolution: user_solutions.UserSolution{LastModified: us.LastModified, Name: us.Name},
+		res.Solutions[us.Id] = &Solutions{
+			UserSolution: user_solutions.UserSolution{LastModified: us.LastModified, Name: us.Name, Public: us.Public},
 			TestId:       testId,
 		}
 	}
@@ -38,7 +39,8 @@ func GetByLanguage(language string, taskId int, userId int) (*UserSolutionsWithT
 		id,
 		to_char(last_modified, 'DD.MM.YY, HH24:MI:SS'),
 		final,
-		name
+		name,
+		public
 	from tests where (user_id = $1 or final = true) and language = $2 and task_id = $3 order by id`
 
 	rows, err = postgres.GetPool().Query(postgres.GetCtx(), testsStatement, userId, language, taskId)
@@ -48,10 +50,10 @@ func GetByLanguage(language string, taskId int, userId int) (*UserSolutionsWithT
 
 	var test tests.Test
 	for rows.Next() {
-		if err = rows.Scan(&test.Id, &test.LastModified, &test.Final, &test.Name); err != nil {
+		if err = rows.Scan(&test.Id, &test.LastModified, &test.Final, &test.Name, &test.Public); err != nil {
 			return nil, err
 		}
-		res.Tests[test.Id] = tests.Test{LastModified: test.LastModified, Final: test.Final, Name: test.Name}
+		res.Tests[test.Id] = &tests.Test{LastModified: test.LastModified, Final: test.Final, Name: test.Name, Public: test.Public}
 	}
 
 	return res, err
