@@ -5,6 +5,7 @@ import (
 	"net/http"
 	"strconv"
 	"webserver/internal/postgres/rdg/last_opened"
+	"webserver/pkg/postgresutil"
 )
 
 func UpdateLastOpenedPost(c echo.Context) error {
@@ -34,6 +35,9 @@ func LastOpenedGet(c echo.Context) error {
 
 	lo, err := last_opened.GetByUserIdAndTaskId(claims.UserId, taskId)
 	if err != nil {
+		if postgresutil.IsNoRowsInResultErr(err) {
+			return c.JSON(http.StatusOK, "not found")
+		}
 		return err
 	}
 	return c.JSON(http.StatusOK, lo)

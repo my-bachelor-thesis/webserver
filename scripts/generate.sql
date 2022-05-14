@@ -1,6 +1,6 @@
 -- truncate all
 
-truncate table user_solutions_test_ids, last_opened ,users, tests, tasks, user_solutions;
+truncate table user_solutions_results, user_solutions_tests, last_opened ,users, tests, tasks, user_solutions;
 
 -- insert default user
 
@@ -21,9 +21,8 @@ values (0, CURRENT_TIMESTAMP, false, '', false, 0, 0, '', '');
 -- insert default user solution
 
 insert into user_solutions
-(id, user_id, task_id, last_modified, language, name, public, code, exit_code, output, compilation_time, real_time,
- kernel_time, user_time, max_ram_usage, binary_size)
-values (0, 0, 0, CURRENT_TIMESTAMP, '', '', false, '', 0, '', 0, 0, 0, 0, 0, 0);
+    (id, user_id, task_id, last_modified, language, name, public, code)
+values (0, 0, 0, CURRENT_TIMESTAMP, '', '', false, '');
 
 -- restart all
 
@@ -121,8 +120,7 @@ values (CURRENT_TIMESTAMP, true, 'final test', true, 1, 2, 'python', 'def test_p
 
 -- insert fizzbuzz into user_solutions
 
-insert into user_solutions (user_id, task_id, last_modified, language, name, public, code, exit_code, output,
-                            compilation_time, real_time, kernel_time, user_time, max_ram_usage, binary_size)
+insert into user_solutions (user_id, task_id, last_modified, language, name, public, code)
 values (1, 1, CURRENT_TIMESTAMP, 'go', 'my solution 1', false, 'package main
 
 import (
@@ -143,12 +141,11 @@ func FizzBuzz1_000_000() []string {
 		}
 	}
 	return res
-}', 0, '', 0, 0, 0, 0, 0, 0);
+}');
 
 -- insert primes into user_solutions
 
-insert into user_solutions (user_id, task_id, last_modified, language, name, public, code, exit_code, output,
-                            compilation_time, real_time, kernel_time, user_time, max_ram_usage, binary_size)
+insert into user_solutions (user_id, task_id, last_modified, language, name, public, code)
 values (1, 2, CURRENT_TIMESTAMP, 'go', 'my solution go', false, 'package main
 
 import "math"
@@ -170,10 +167,9 @@ func primes() (res []int) {
 		}
 	}
 	return
-}', 0, '', 0, 0, 0, 0, 0, 0);
+}');
 
-insert into user_solutions (user_id, task_id, last_modified, language, name, public, code, exit_code, output,
-                            compilation_time, real_time, kernel_time, user_time, max_ram_usage, binary_size)
+insert into user_solutions (user_id, task_id, last_modified, language, name, public, code)
 values (1, 2, CURRENT_TIMESTAMP, 'python', 'my python solution', false, 'def is_prime(n):
 	for i in range(2, int(n**1 / 2) + 1):
 		if n % i == 0:
@@ -187,5 +183,5 @@ def primes():
 		if is_prime(i):
 			res.append(i)
 		i += 1
-	return res', 0, '', 0, 0, 0, 0, 0, 0);
+	return res');
 

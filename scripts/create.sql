@@ -40,30 +40,38 @@ create table tasks
 drop table if exists user_solutions cascade;
 create table user_solutions
 (
-    id               serial primary key,
-    user_id          int default 0 references users on delete set default not null,
-    task_id          int references tasks on delete cascade               not null,
-    last_modified    timestamp with time zone                             not null,
-    language         varchar                                              not null,
-    name             varchar                                              not null,
-    public           boolean                                              not null,
-    code             varchar                                              not null,
-    exit_code        int                                                  not null,
-    output           varchar                                              not null,
-    compilation_time float4                                               not null,
-    real_time        float4                                               not null,
-    kernel_time      float4                                               not null,
-    user_time        float4                                               not null,
-    max_ram_usage    float4                                               not null,
-    binary_size      float4                                               not null
+    id            serial primary key,
+    user_id       int default 0 references users on delete set default not null,
+    task_id       int references tasks on delete cascade               not null,
+    last_modified timestamp with time zone                             not null,
+    language      varchar                                              not null,
+    name          varchar                                              not null,
+    public        boolean                                              not null,
+    code          varchar                                              not null
 );
 
-drop table if exists user_solutions_test_ids cascade;
-create table user_solutions_test_ids
+drop table if exists user_solutions_tests cascade;
+create table user_solutions_tests
 (
     user_solution_id int references user_solutions on delete cascade not null,
     test_id          int references tests on delete cascade          not null,
     user_id          int references users on delete cascade          not null
+);
+
+drop table if exists user_solutions_results cascade;
+create table user_solutions_results
+(
+    user_solution_id int references user_solutions on delete cascade not null,
+    test_id          int references tests on delete cascade          not null,
+    user_id          int references users on delete cascade          not null,
+    exit_code        int                                             not null,
+    output           varchar                                         not null,
+    compilation_time float4                                          not null,
+    real_time        float4                                          not null,
+    kernel_time      float4                                          not null,
+    user_time        float4                                          not null,
+    max_ram_usage    float4                                          not null,
+    binary_size      float4                                          not null
 );
 
 drop table if exists last_opened cascade;

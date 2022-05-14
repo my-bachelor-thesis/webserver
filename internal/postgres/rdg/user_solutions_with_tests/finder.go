@@ -11,11 +11,10 @@ func GetByLanguage(language string, taskId int, userId int) (*UserSolutionsWithT
 
 	solutionsStatement := `
 	select 
-		id,
-		to_char(last_modified, 'DD.MM.YY, HH24:MI:SS'),
-		exit_code,
-		name,
-		coalesce((select test_id from user_solutions_test_ids usti where usti.user_solution_id = us.id and usti.user_id = $1), 0) as test_id
+		us.id,
+		to_char(us.last_modified, 'DD.MM.YY, HH24:MI:SS'),
+		us.name,
+		coalesce((select ust.test_id from user_solutions_tests ust where ust.user_solution_id = us.id and ust.user_id = $1), 0) as test_id
 	from user_solutions us where us.user_id = $2 and us.language = $3 and us.task_id = $4 order by us.last_modified desc`
 
 	rows, err := postgres.GetPool().Query(postgres.GetCtx(), solutionsStatement, userId, userId, language, taskId)
@@ -25,11 +24,11 @@ func GetByLanguage(language string, taskId int, userId int) (*UserSolutionsWithT
 	var us Solutions
 	var testId int
 	for rows.Next() {
-		if err = rows.Scan(&us.Id, &us.LastModified, &us.ExitCode, &us.Name, &testId); err != nil {
+		if err = rows.Scan(&us.Id, &us.LastModified, &us.Name, &testId); err != nil {
 			return nil, err
 		}
 		res.Solutions[us.Id] = Solutions{
-			UserSolution: user_solutions.UserSolution{LastModified: us.LastModified, ExitCode: us.ExitCode, Name: us.Name},
+			UserSolution: user_solutions.UserSolution{LastModified: us.LastModified, Name: us.Name},
 			TestId:       testId,
 		}
 	}

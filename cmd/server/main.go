@@ -75,6 +75,7 @@ func main() {
 	e.POST("/editor/change-testid-for-usersolution", handlers.UpdateTestIdForUserSolutionPost)
 	e.POST("/editor/change-last-opened", handlers.UpdateLastOpenedPost)
 	e.GET("/editor/get-last-opened/:task-id", handlers.LastOpenedGet)
+	e.GET("/editor/get-solution-result/:user-solution-id/:test-id", handlers.UserSolutionsResultsGet)
 
 	// from register
 	e.GET("/register/is-valid-username/:username", handlers.IsValidUsername)

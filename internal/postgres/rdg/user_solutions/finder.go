@@ -7,7 +7,7 @@ import (
 )
 
 func GetById(id int) (*UserSolution, error) {
-	statement := fmt.Sprintf("select %s from user_solutions where id = $1", allFieldReplacedTimestamp)
+	statement := fmt.Sprintf("select %s from %s where id = $1", allFieldReplacedTimestamp, tableName)
 	us := UserSolution{}
 	err := load(postgres.GetPool().QueryRow(postgres.GetCtx(), statement, id), &us)
 	return &us, err
@@ -15,6 +15,5 @@ func GetById(id int) (*UserSolution, error) {
 
 func load(qr pgx.Row, us *UserSolution) error {
 	return qr.Scan(&us.Id, &us.UserId, &us.TaskId, &us.LastModified,
-		&us.Language, &us.Name, &us.Public, &us.Code, &us.ExitCode, &us.Output, &us.CompilationTime, &us.RealTime,
-		&us.KernelTime, &us.UserTime, &us.MaxRamUsage, &us.BinarySize)
+		&us.Language, &us.Name, &us.Public, &us.Code)
 }

@@ -2,7 +2,7 @@ package handlers
 
 import (
 	"github.com/labstack/echo/v4"
-	"webserver/internal/postgres/rdg/user_solutions_test_ids"
+	"webserver/internal/postgres/rdg/user_solutions_tests"
 )
 
 func UpdateTestIdForUserSolutionPost(c echo.Context) error {
@@ -18,6 +18,6 @@ func UpdateTestIdForUserSolutionPost(c echo.Context) error {
 	if err != nil {
 		return err
 	}
-	usti := user_solutions_test_ids.UserSolutionsTestIds{TestId: req.TestId, UserSolutionId: req.UserSolutionId, UserId: claims.UserId}
-	return usti.Upsert()
+	ust := user_solutions_tests.UserSolutionsTests{TestId: req.TestId, UserSolutionId: req.UserSolutionId, UserId: claims.UserId}
+	return ust.Upsert()
 }
