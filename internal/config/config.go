@@ -10,12 +10,11 @@ const envFile = ".env"
 var config Config
 
 type Config struct {
-	Port          int
-	IsProduction  bool
-	PostgresURL   string
-	JWTSecret     string
-	TesterApiIp   string
-	TesterApiPort int
+	Port         int
+	IsProduction bool
+	PostgresURL  string
+	JWTSecret    string
+	TesterApiURL string
 }
 
 func LoadConfig() error {

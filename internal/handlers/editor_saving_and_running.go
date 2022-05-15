@@ -7,6 +7,7 @@ import (
 	"fmt"
 	"github.com/labstack/echo/v4"
 	"net/http"
+	"webserver/internal/config"
 	"webserver/internal/postgres/rdg/tests"
 	"webserver/internal/postgres/rdg/user_solutions"
 	"webserver/internal/postgres/rdg/user_solutions_results"
@@ -49,7 +50,8 @@ func bindRequestRunAndSaveResult(c echo.Context) (*user_solutions_results.UserSo
 	}
 
 	lang := c.Param("lang")
-	resp, err := http.Post(fmt.Sprintf("http://localhost:4000/%s", lang), "application/json", bytes.NewBuffer(postData))
+	resp, err := http.Post(fmt.Sprintf("%s/%s", config.GetInstance().TesterApiURL, lang),
+		"application/json", bytes.NewBuffer(postData))
 	if err != nil {
 		return nil, nil, err
 	}
