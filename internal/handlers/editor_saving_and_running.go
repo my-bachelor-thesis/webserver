@@ -3,6 +3,7 @@ package handlers
 import (
 	"bytes"
 	"encoding/json"
+	"errors"
 	"fmt"
 	"github.com/labstack/echo/v4"
 	"net/http"
@@ -53,6 +54,10 @@ func bindRequestRunAndSaveResult(c echo.Context) (*user_solutions_results.UserSo
 		return nil, nil, err
 	}
 	defer resp.Body.Close()
+
+	if resp.StatusCode != http.StatusOK {
+		return nil, nil, errors.New(fmt.Sprintf("got status code %d from the Testrer API", resp.StatusCode))
+	}
 
 	usr := &user_solutions_results.UserSolutionsResults{}
 	if err = json.NewDecoder(resp.Body).Decode(usr); err != nil {
