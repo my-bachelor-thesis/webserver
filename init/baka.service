@@ -1,0 +1,14 @@
+[Unit]
+Description=baka
+
+[Service]
+Type=simple
+Restart=always
+RestartSec=5s
+ExecStart=/root/webserver/main
+WorkingDirectory=/root/webserver
+StandardOutput=/var/log/baka
+StandardError=/var/log/baka_error
+
+[Install]
+WantedBy=multi-user.target

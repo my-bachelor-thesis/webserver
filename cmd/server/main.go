@@ -29,8 +29,6 @@ func main() {
 	if config.GetInstance().IsProduction {
 		e.Use(middleware.Recover())
 		e.Use(middleware.Logger())
-	} else {
-		e.Debug = true
 	}
 
 	jwtConfig := middleware.JWTConfig{

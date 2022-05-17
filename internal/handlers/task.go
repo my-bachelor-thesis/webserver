@@ -90,13 +90,17 @@ func AddPostPost(c echo.Context) error {
 
 	// todo: all in one transaction
 
-	req := request{}
-	if err := c.Bind(&req); err != nil {
+	claims, err := getClaimsFromRequest(c)
+	if err != nil {
 		return err
 	}
 
-	claims, err := getClaimsFromRequest(c)
-	if err != nil {
+	if !claims.IsAdmin {
+		return c.JSON(http.StatusMethodNotAllowed, nil)
+	}
+
+	req := request{}
+	if err := c.Bind(&req); err != nil {
 		return err
 	}
 
