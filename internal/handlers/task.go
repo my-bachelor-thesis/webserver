@@ -73,7 +73,7 @@ func ApproveTaskPost(c echo.Context) error {
 
 func AddPostPost(c echo.Context) error {
 	type nameAndCode struct {
-		Name     string `json:"name" validate:"required"`
+		Name     string `json:"name"`
 		Code     string `json:"code" validate:"required"`
 		Language string `json:"language" validate:"required"`
 	}
@@ -147,10 +147,11 @@ func AddPostPost(c echo.Context) error {
 	}
 
 	var finalTests []*tests.Test
-	for _, test := range request.PublicTests {
+	for _, test := range request.FinalTests {
 		var t tests.Test
 		fillTest(&t, test)
 		t.Final = true
+		t.Name = "Final"
 		finalTests = append(finalTests, &t)
 	}
 	return tests.InsertMany(finalTests)
