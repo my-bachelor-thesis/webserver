@@ -1,11 +1,12 @@
 -- truncate all
 
-truncate table user_solutions_results, user_solutions_tests, last_opened ,users, tests, tasks, user_solutions;
+truncate table user_solutions_results, user_solutions_tests, last_opened ,users, tests, tasks, user_solutions,
+    tokens_for_password_reset, tokens_for_registration;
 
 -- insert default user
 
-insert into users (id, is_admin, first_name, last_name, username, email, password)
-values (0, false, '', '', '', '', '');
+insert into users (id, is_admin, first_name, last_name, username, email, password, activated)
+values (0, false, '', '', '', '', '', false);
 
 -- insert default task
 
@@ -33,13 +34,13 @@ alter sequence tests_id_seq restart with 1;
 
 -- insert test users (passwords are 1234)
 
-insert into users (is_admin, first_name, last_name, username, email, password)
-values (true, 'Bill', 'The admin', 'admin', 'admin@bill.com',
-        '$2a$10$dY6ifXE0GuutyZwE0OjL/OsRcNLrI6N2HiZpaf.vD8/nAU7txxIX2'),
-       (false, 'Taylor', 'The user', 'taylor', 'taylor@email.com',
-        '$2a$10$6yl63KhFSNK0ds3eSxY6CONCXIwSznYZzlQi2h560cx9rT1VYDS9.'),
-       (false, 'Riley', 'Goodman', 'riley', 'riley@goodman.com',
-        '$2a$10$ZcLkQLciNXCq50cOHMSX2ORf7DHd0rRVdn7XmGZZHC37kdYQEa.Xa');
+insert into users (is_admin, first_name, last_name, username, email, password, activated)
+values (true, 'website', 'admin', 'admin', 'admin@website.com',
+        '$2a$10$dY6ifXE0GuutyZwE0OjL/OsRcNLrI6N2HiZpaf.vD8/nAU7txxIX2', true),
+       (false, 'first', 'user', 'user1', 'user1@email.com',
+        '$2a$10$6yl63KhFSNK0ds3eSxY6CONCXIwSznYZzlQi2h560cx9rT1VYDS9.', true),
+       (false, 'second', 'user', 'user2', 'user2@email.com',
+        '$2a$10$ZcLkQLciNXCq50cOHMSX2ORf7DHd0rRVdn7XmGZZHC37kdYQEa.Xa', true);
 
 -- insert fizzbuzz into tasks
 

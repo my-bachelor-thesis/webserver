@@ -5,6 +5,8 @@ import (
 )
 
 func GetByTaskId(taskId int) (*InitialDataForEditor, error) {
+	// TODO: in transaction
+
 	statement := `
 	select
 		t.title,

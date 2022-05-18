@@ -73,112 +73,85 @@ func ApproveTaskPost(c echo.Context) error {
 
 func AddPostPost(c echo.Context) error {
 	type nameAndCode struct {
-		Name string `json:"name"`
-		Code string `json:"code"`
+		Name     string `json:"name" validate:"required"`
+		Code     string `json:"code" validate:"required"`
+		Language string `json:"language" validate:"required"`
 	}
-	type request struct {
-		Title           string         `json:"title"`
-		Difficulty      string         `json:"difficulty"`
-		Description     string         `json:"description"`
-		GoFinalTest     string         `json:"go_final_test"`
-		GoTests         []*nameAndCode `json:"go_tests"`
-		GoSolutions     []*nameAndCode `json:"go_solutions"`
-		PythonFinalTest string         `json:"python_final_test"`
-		PythonTests     []*nameAndCode `json:"python_tests"`
-		PythonSolutions []*nameAndCode `json:"python_solutions"`
+	var request struct {
+		Title           string         `json:"title" validate:"required"`
+		Difficulty      string         `json:"difficulty" validate:"required"`
+		Description     string         `json:"description" validate:"required"`
+		FinalTests      []*nameAndCode `json:"final_tests" validate:"required"`
+		PublicTests     []*nameAndCode `json:"pubic_tests"`
+		PublicSolutions []*nameAndCode `json:"public_solutions"`
 	}
 
-	// todo: all in one transaction
+	if err := bindAndValidate(c, &request); err != nil {
+		return err
+	}
 
 	claims, err := getClaimsFromRequest(c)
 	if err != nil {
 		return err
 	}
 
-	if !claims.IsAdmin {
-		return c.JSON(http.StatusMethodNotAllowed, nil)
-	}
-
-	req := request{}
-	if err := c.Bind(&req); err != nil {
-		return err
-	}
+	// todo: all in one transaction
 
 	// insert task
 	task := tasks.Task{
 		AuthorId:   claims.UserId,
-		Title:      req.Title,
-		Difficulty: req.Difficulty,
-		Text:       req.Description,
+		Title:      request.Title,
+		Difficulty: request.Difficulty,
+		Text:       request.Description,
 	}
 	if err = task.Insert(); err != nil {
 		return err
 	}
 
-	makeSolutionsSlice := func(solutions []*nameAndCode, language string) (res []*user_solutions.UserSolution) {
-		for _, solution := range solutions {
+	if len(request.PublicSolutions) > 0 {
+		var publicSolutions []*user_solutions.UserSolution
+		for _, solution := range request.PublicSolutions {
 			var u user_solutions.UserSolution
 			u.UserId = claims.UserId
 			u.TaskId = task.Id
-			u.Language = language
+			u.Language = solution.Language
 			u.Name = solution.Name
 			u.Public = true
 			u.Code = solution.Code
-			res = append(res, &u)
+			publicSolutions = append(publicSolutions, &u)
 		}
-		return
+		if err = user_solutions.InsertMany(publicSolutions); err != nil {
+			return err
+		}
 	}
 
-	makeTestsSlice := func(ts []*nameAndCode, language string) (res []*tests.Test) {
-		for _, test := range ts {
+	fillTest := func(newTest *tests.Test, testFromRequest *nameAndCode) {
+		newTest.Name = testFromRequest.Name
+		newTest.Public = true
+		newTest.UserId = claims.UserId
+		newTest.TaskId = task.Id
+		newTest.Language = testFromRequest.Language
+		newTest.Code = testFromRequest.Code
+	}
+
+	if len(request.PublicTests) > 0 {
+		var publicTests []*tests.Test
+		for _, test := range request.PublicTests {
 			var t tests.Test
-			t.Name = test.Name
-			t.Code = test.Code
-			t.Language = "go"
-			t.UserId = claims.UserId
-			t.Public = true
-			t.TaskId = task.Id
-			res = append(res, &t)
+			fillTest(&t, test)
+			publicTests = append(publicTests, &t)
 		}
-		return
-	}
-
-	insertFinal := func(code, language string) error {
-		var test tests.Test
-		test.Name = "final"
-		test.Code = code
-		test.Language = language
-		test.UserId = claims.UserId
-		test.TaskId = task.Id
-		if err = test.Insert(); err != nil {
-			return err
-		}
-		return nil
-	}
-
-	if req.GoFinalTest != "" {
-		if err = user_solutions.InsertMany(makeSolutionsSlice(req.GoSolutions, "go")); err != nil {
-			return err
-		}
-		if err = tests.InsertMany(makeTestsSlice(req.GoTests, "go")); err != nil {
-			return err
-		}
-		if err = insertFinal(req.GoFinalTest, "go"); err != nil {
+		if err = tests.InsertMany(publicTests); err != nil {
 			return err
 		}
 	}
 
-	if req.PythonFinalTest != "" {
-		if err = user_solutions.InsertMany(makeSolutionsSlice(req.PythonSolutions, "python")); err != nil {
-			return err
-		}
-		if err = tests.InsertMany(makeTestsSlice(req.PythonTests, "python")); err != nil {
-			return err
-		}
-		if err = insertFinal(req.PythonFinalTest, "python"); err != nil {
-			return err
-		}
+	var finalTests []*tests.Test
+	for _, test := range request.PublicTests {
+		var t tests.Test
+		fillTest(&t, test)
+		t.Final = true
+		finalTests = append(finalTests, &t)
 	}
-
-	return c.JSON(http.StatusOK, nil)
+	return tests.InsertMany(finalTests)
 }

@@ -10,7 +10,7 @@ import (
 
 func UpdateLastOpenedPost(c echo.Context) error {
 	var req last_opened.LastOpened
-	if err := c.Bind(&req); err != nil {
+	if err := bindAndValidate(c, &req); err != nil {
 		return err
 	}
 	claims, err := getClaimsFromRequest(c)

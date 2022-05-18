@@ -14,12 +14,12 @@ import (
 )
 
 type RequestForTesting struct {
-	Solution   string `json:"solution"`
-	SolutionId int    `json:"solution_id"`
-	Test       string `json:"test"`
-	TestId     int    `json:"test_id"`
-	TaskId     int    `json:"task_id"`
-	HashId     string `json:"hash_id"`
+	Solution   string `json:"solution" validate:"required"`
+	SolutionId int    `json:"solution_id" validate:"required"`
+	Test       string `json:"test" validate:"required"`
+	TestId     int    `json:"test_id" validate:"required"`
+	TaskId     int    `json:"task_id" validate:"required"`
+	HashId     string `json:"hash_id" validate:"required"`
 }
 
 type InsertedSolution struct {
@@ -40,7 +40,7 @@ type ResultFromTesting struct {
 
 func bindRequestRunAndSaveResult(c echo.Context) (*user_solutions_results.UserSolutionsResults, *RequestForTesting, error) {
 	req := &RequestForTesting{}
-	if err := c.Bind(req); err != nil {
+	if err := bindAndValidate(c, req); err != nil {
 		return nil, nil, err
 	}
 

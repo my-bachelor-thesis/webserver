@@ -2,9 +2,11 @@ package main
 
 import (
 	"fmt"
+	"github.com/go-playground/validator"
 	"github.com/labstack/echo/v4"
 	"github.com/labstack/echo/v4/middleware"
 	"log"
+	"net/http"
 	"runtime"
 	"webserver/internal/config"
 	"webserver/internal/handlers"
@@ -12,6 +14,19 @@ import (
 )
 
 var frontendEndpoints = [...]string{"/", "add-task", "task", "login", "register", "logout", "about", "account-settings", "not-published", "approve"}
+
+// custom form validator
+
+type CustomValidator struct {
+	validator *validator.Validate
+}
+
+func (cv *CustomValidator) Validate(i interface{}) error {
+	if err := cv.validator.Struct(i); err != nil {
+		return echo.NewHTTPError(http.StatusBadRequest, err.Error())
+	}
+	return nil
+}
 
 func init() {
 	if runtime.GOOS != "linux" {
@@ -44,6 +59,9 @@ func main() {
 		},
 	}
 	e.Use(middleware.JWTWithConfig(jwtConfig))
+
+	// enable custom form validator
+	e.Validator = &CustomValidator{validator: validator.New()}
 
 	// disable all CORS
 	e.Use(middleware.CORSWithConfig(middleware.CORSConfig{
@@ -93,6 +111,11 @@ func main() {
 	// approve
 	e.GET("/not-approved/all", handlers.AllTasksUnapprovedGet)
 	e.POST("/not-approved/approve", handlers.ApproveTaskPost)
+
+	// account setting
+	e.POST("/account-setting/update-user-info", handlers.UpdateUserInfoPost)
+	e.POST("/account-setting/update-password", handlers.UpdatePasswordPost)
+	e.POST("/account-setting/update-email", handlers.UpdateEmailPost)
 
 	e.Logger.Fatal(e.Start(fmt.Sprintf(":%d", config.GetInstance().Port)))
 }

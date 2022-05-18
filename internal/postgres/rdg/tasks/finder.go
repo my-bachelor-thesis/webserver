@@ -18,19 +18,19 @@ func GetById(id int) (*Task, error) {
 }
 
 func GetApprovedAndPublished() ([]*Task, error) {
-	return getManyWithCondition("is_published = true and approver_id != 0")
+	return getManyWithConditions("is_published = true and approver_id != 0")
 }
 
 func GetUnapproved() ([]*Task, error) {
-	return getManyWithCondition("is_published = true and approver_id = 0")
+	return getManyWithConditions("is_published = true and approver_id = 0")
 }
 
 func GetUnpublished() ([]*Task, error) {
-	return getManyWithCondition("is_published = false")
+	return getManyWithConditions("is_published = false")
 }
 
-func getManyWithCondition(condition string) ([]*Task, error) {
-	statement := fmt.Sprintf("select %s from tasks where %s", allFieldReplacedTimestamp, condition)
+func getManyWithConditions(conditions string) ([]*Task, error) {
+	statement := fmt.Sprintf("select %s from tasks where %s", allFieldReplacedTimestamp, conditions)
 	rows, err := postgres.GetPool().Query(postgres.GetCtx(), statement)
 	if err != nil {
 		return nil, err

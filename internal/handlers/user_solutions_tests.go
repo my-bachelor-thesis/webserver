@@ -6,18 +6,18 @@ import (
 )
 
 func UpdateTestIdForUserSolutionPost(c echo.Context) error {
-	type request struct {
-		UserSolutionId int `json:"user_solution_id"`
-		TestId         int `json:"test_id"`
+	var request struct {
+		UserSolutionId int `json:"user_solution_id" validate:"required"`
+		TestId         int `json:"test_id" validate:"required"`
 	}
-	var req request
-	if err := c.Bind(&req); err != nil {
+	if err := bindAndValidate(c, &request); err != nil {
 		return err
 	}
 	claims, err := getClaimsFromRequest(c)
 	if err != nil {
 		return err
 	}
-	ust := user_solutions_tests.UserSolutionsTests{TestId: req.TestId, UserSolutionId: req.UserSolutionId, UserId: claims.UserId}
+	ust := user_solutions_tests.UserSolutionsTests{TestId: request.TestId, UserSolutionId: request.UserSolutionId,
+		UserId: claims.UserId}
 	return ust.Upsert()
 }

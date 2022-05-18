@@ -9,6 +9,8 @@ import (
 func GetByLanguage(language string, taskId int, userId int) (*UserSolutionsWithTests, error) {
 	res := NewUserSolutionsWithTests()
 
+	// TODO in transaction
+
 	solutionsStatement := `
 	select 
 		us.id,

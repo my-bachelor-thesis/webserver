@@ -3,30 +3,30 @@ package users
 import (
 	"fmt"
 	"github.com/jackc/pgx/v4"
+	"strconv"
 	"webserver/internal/postgres"
 	"webserver/pkg/postgresutil"
 )
 
 func GetById(id int) (*User, error) {
-	if id == 0 {
-		return nil, postgresutil.ErrNoRowsInResult
-	}
-	statement := fmt.Sprintf("select %s from users where id = $1", allFields)
-	user := User{}
-	err := load(postgres.GetPool().QueryRow(postgres.GetCtx(), statement, id), &user)
-	return &user, err
+	return getBySomething("id", strconv.Itoa(id))
 }
 
 func GetByUsername(username string) (*User, error) {
-	statement := fmt.Sprintf("select %s from users where username = $1", allFields)
+	return getBySomething("username", username)
+}
+
+func getBySomething(fieldName, fieldValue string) (*User, error) {
+	statement := fmt.Sprintf("select %s from users where %s = $1", allFields, fieldName)
 	user := User{}
-	err := load(postgres.GetPool().QueryRow(postgres.GetCtx(), statement, username), &user)
-	if err == nil && user.Id == 0 {
+	err := load(postgres.GetPool().QueryRow(postgres.GetCtx(), statement, fieldValue), &user)
+	if err == nil && (user.Id == 0 || !user.Activated) {
 		err = postgresutil.ErrNoRowsInResult
 	}
 	return &user, err
 }
 
 func load(qr pgx.Row, user *User) error {
-	return qr.Scan(&user.Id, &user.IsAdmin, &user.FirstName, &user.LastName, &user.Username, &user.Email, &user.Password)
+	return qr.Scan(&user.Id, &user.IsAdmin, &user.FirstName, &user.LastName, &user.Username, &user.Email,
+		&user.Password, &user.Activated)
 }

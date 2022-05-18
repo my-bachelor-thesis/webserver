@@ -7,7 +7,8 @@ create table users
     last_name  varchar        not null,
     username   varchar unique not null, -- TODO: unique
     email      varchar unique not null,
-    password   varchar        not null
+    password   varchar        not null,
+    activated  bool           not null
 );
 
 drop table if exists tests cascade;
@@ -83,4 +84,18 @@ create table last_opened
     user_solution_id_for_language_2 int references user_solutions on delete cascade not null,
     language_1                      varchar                                         not null,
     language_2                      varchar                                         not null
+);
+
+drop table if exists tokens_for_password_reset cascade;
+create table tokens_for_password_reset
+(
+    user_id int references users on delete cascade not null,
+    token   varchar                                not null
+);
+
+drop table if exists tokens_for_registration cascade;
+create table tokens_for_registration
+(
+    user_id int references users on delete cascade not null,
+    token   varchar                                not null
 );
