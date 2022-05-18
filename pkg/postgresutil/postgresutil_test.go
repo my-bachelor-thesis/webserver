@@ -12,7 +12,15 @@ func TestGeneratePlaceholders(t *testing.T) {
 
 func TestGeneratePlaceholdersAndReplace(t *testing.T) {
 	want := "$1, $2, REPLACED, $3"
-	got := GeneratePlaceholdersAndReplace("a, b, c, d", map[int]string{2:"REPLACED"})
+	got := GeneratePlaceholdersAndReplace("a, b, c, d", map[int]string{2: "REPLACED"})
+	if want != got {
+		t.Errorf("want %q, but got %q", want, got)
+	}
+}
+
+func TestGeneratePlaceholdersAndReplaceFromIndex(t *testing.T) {
+	want := "$4, $5, REPLACED, $6"
+	got := GeneratePlaceholdersAndReplaceFromIndex("a, b, c, d", map[int]string{2: "REPLACED"}, 4)
 	if want != got {
 		t.Errorf("want %q, but got %q", want, got)
 	}

@@ -21,10 +21,14 @@ func GeneratePlaceholders(fields string) (placeHolders string) {
 }
 
 func GeneratePlaceholdersAndReplace(fields string, replace map[int]string) (placeHolders string) {
+	return GeneratePlaceholdersAndReplaceFromIndex(fields, replace, 1)
+}
+
+func GeneratePlaceholdersAndReplaceFromIndex(fields string, replace map[int]string, index int) (placeHolders string) {
 	n := strings.Count(fields, ",") + 1
 	var numberOfReplaced int
-	for i := 1; i <= n; i++ {
-		if value, ok := replace[i-1]; ok {
+	for i := index; i < n+index; i++ {
+		if value, ok := replace[i-index]; ok {
 			placeHolders += fmt.Sprintf("%s, ", value)
 			numberOfReplaced++
 			continue
@@ -38,7 +42,7 @@ func CallToCharOnTimestamp(s, fieldToReplace string) string {
 	return strings.Replace(s, fieldToReplace, fmt.Sprintf("to_char(%s, 'DD.MM.YY, HH24:MI:SS')", fieldToReplace), 1)
 }
 
-func IsNoRowsInResultErr(err error) bool{
+func IsNoRowsInResultErr(err error) bool {
 	if err == nil {
 		return false
 	}

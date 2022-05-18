@@ -2,6 +2,7 @@ package user_solutions
 
 import (
 	"fmt"
+	"strings"
 	"webserver/internal/postgres"
 	"webserver/pkg/postgresutil"
 )
@@ -47,8 +48,13 @@ func InsertMany(us []*UserSolution) error {
 	insert into %s (%s)
 	values `, tableName, allFieldsWithoutId)
 	var vals []interface{}
+	var palaceholders string
+	numberOfFields := strings.Count(allFieldsWithoutId, ",")
+	placeholderIndex := 1
 	for _, row := range us {
-		statement += fmt.Sprintf("(%s),", placeHoldersWithTimestampAndWithoutId)
+		palaceholders = postgresutil.GeneratePlaceholdersAndReplaceFromIndex(allFieldsWithoutId, map[int]string{2: "CURRENT_TIMESTAMP"}, placeholderIndex)
+		placeholderIndex += numberOfFields
+		statement += fmt.Sprintf("(%s),", palaceholders)
 		vals = append(vals, getInsertFields(row)...)
 	}
 	statement = statement[0 : len(statement)-1]

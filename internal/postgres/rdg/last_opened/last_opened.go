@@ -10,11 +10,11 @@ const allFields = "user_id, task_id, user_solution_id_for_language_1, language_1
 
 type LastOpened struct {
 	UserId                     int    `json:"user_id"`
-	TaskId                     int    `json:"task_id" validate:"required"`
-	UserSolutionIdForLanguage1 int    `json:"user_solution_id_for_language_1" validate:"required"`
-	Language1                  string `json:"language_1" validate:"required"`
-	UserSolutionIdForLanguage2 int    `json:"user_solution_id_for_language_2" validate:"required"`
-	Language2                  string `json:"language_2" validate:"required"`
+	TaskId                     int    `json:"task_id"`
+	UserSolutionIdForLanguage1 int    `json:"user_solution_id_for_language_1"`
+	Language1                  string `json:"language_1"`
+	UserSolutionIdForLanguage2 int    `json:"user_solution_id_for_language_2"`
+	Language2                  string `json:"language_2"`
 }
 
 func (lo *LastOpened) Insert() error {
