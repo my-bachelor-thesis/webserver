@@ -16,6 +16,10 @@ func GetByUsername(username string) (*User, error) {
 	return getBySomething("username", username)
 }
 
+func GetByEmail(email string) (*User, error) {
+	return getBySomething("email", email)
+}
+
 func getBySomething(fieldName, fieldValue string) (*User, error) {
 	statement := fmt.Sprintf("select %s from users where %s = $1", allFields, fieldName)
 	user := User{}

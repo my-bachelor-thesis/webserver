@@ -86,6 +86,11 @@ func IsValidUsername(c echo.Context) error {
 	return c.JSON(http.StatusOK, fmt.Sprintf("%t", !postgresutil.IsNoRowsInResultErr(err)))
 }
 
+func IsValidEmail(c echo.Context) error {
+	_, err := users.GetByEmail(c.Param("email"))
+	return c.JSON(http.StatusOK, fmt.Sprintf("%t", !postgresutil.IsNoRowsInResultErr(err)))
+}
+
 func UpdateUserInfoPost(c echo.Context) error {
 	var request struct {
 		FirstName string `json:"first_name" validate:"required"`

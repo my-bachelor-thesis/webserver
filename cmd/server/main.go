@@ -96,6 +96,7 @@ func main() {
 
 	// from register
 	e.GET("/register/is-valid-username/:username", handlers.IsValidUsername)
+	e.GET("/register/is-valid-email/:email", handlers.IsValidEmail)
 	e.POST("/register/form", handlers.RegisterPost)
 
 	// from login

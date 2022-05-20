@@ -5,7 +5,7 @@ create table users
     is_admin   boolean        not null,
     first_name varchar        not null,
     last_name  varchar        not null,
-    username   varchar unique not null, -- TODO: unique
+    username   varchar unique not null,
     email      varchar unique not null,
     password   varchar        not null,
     activated  bool           not null
