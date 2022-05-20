@@ -13,7 +13,8 @@ import (
 	"webserver/internal/postgres"
 )
 
-var frontendEndpoints = [...]string{"/", "add-task", "task", "login", "register", "logout", "about", "account-settings", "not-published", "approve"}
+var frontendEndpoints = [...]string{"/", "add-task", "task", "login", "register", "logout", "about",
+	"account-settings", "not-published", "approve", "statistic", "promote-user"}
 
 // custom form validator
 
@@ -116,6 +117,9 @@ func main() {
 	e.POST("/account-setting/update-user-info", handlers.UpdateUserInfoPost)
 	e.POST("/account-setting/update-password", handlers.UpdatePasswordPost)
 	e.POST("/account-setting/update-email", handlers.UpdateEmailPost)
+
+	// task statistic
+	e.GET("/statistic/:task-id", handlers.StatisticGet)
 
 	e.Logger.Fatal(e.Start(fmt.Sprintf(":%d", config.GetInstance().Port)))
 }
