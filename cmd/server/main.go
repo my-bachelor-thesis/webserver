@@ -14,7 +14,8 @@ import (
 )
 
 var frontendEndpoints = [...]string{"/", "add-task", "task", "login", "register", "logout", "about",
-	"account-settings", "not-published", "approve", "statistic", "promote-user"}
+	"account-settings", "not-published", "approve", "statistic", "promote-user", "reset-password-request",
+	"email-verification", "password-reset"}
 
 // custom form validator
 
@@ -101,6 +102,7 @@ func main() {
 
 	// from login
 	e.POST("/login/form", handlers.LoginPost)
+	e.POST("/login/reset-password", handlers.RequestResetPasswordPost)
 
 	// TODO: change to path/action
 	// from add-task
@@ -121,6 +123,10 @@ func main() {
 
 	// task statistic
 	e.GET("/statistic/:task-id", handlers.StatisticGet)
+
+	// other
+	e.POST("/do-password-reset", handlers.ResetPasswordPost)
+	e.POST("/email-verification", handlers.EmailVerificationPost)
 
 	e.Logger.Fatal(e.Start(fmt.Sprintf(":%d", config.GetInstance().Port)))
 }

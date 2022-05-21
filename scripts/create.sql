@@ -89,13 +89,13 @@ create table last_opened
 drop table if exists tokens_for_password_reset cascade;
 create table tokens_for_password_reset
 (
-    user_id int references users on delete cascade not null,
-    token   varchar                                not null
+    user_id int references users on delete cascade unique not null,
+    token   varchar unique                                not null
 );
 
-drop table if exists tokens_for_registration cascade;
-create table tokens_for_registration
+drop table if exists tokens_for_verification cascade;
+create table tokens_for_verification
 (
-    user_id int references users on delete cascade not null,
-    token   varchar                                not null
+    user_id int references users on delete cascade unique not null,
+    token   varchar unique                                not null
 );

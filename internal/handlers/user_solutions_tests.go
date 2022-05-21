@@ -17,7 +17,7 @@ func UpdateTestIdForUserSolutionPost(c echo.Context) error {
 	if err != nil {
 		return err
 	}
-	ust := user_solutions_tests.UserSolutionsTests{TestId: request.TestId, UserSolutionId: request.UserSolutionId,
+	ust := user_solutions_tests.UserSolutionTest{TestId: request.TestId, UserSolutionId: request.UserSolutionId,
 		UserId: claims.UserId}
 	return ust.Upsert()
 }

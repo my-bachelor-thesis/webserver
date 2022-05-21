@@ -33,12 +33,12 @@ type InsertedTest struct {
 }
 
 type ResultFromTesting struct {
-	Result           *user_solutions_results.UserSolutionsResults `json:"result"`
-	InsertedTest     *InsertedTest                                `json:"inserted_test"`
+	Result           *user_solutions_results.UserSolutionResult `json:"result"`
+	InsertedTest     *InsertedTest                              `json:"inserted_test"`
 	InsertedSolution *InsertedSolution                            `json:"inserted_solution"`
 }
 
-func bindRequestRunAndSaveResult(c echo.Context) (*user_solutions_results.UserSolutionsResults, *RequestForTesting, error) {
+func bindRequestRunAndSaveResult(c echo.Context) (*user_solutions_results.UserSolutionResult, *RequestForTesting, error) {
 	req := &RequestForTesting{}
 	if err := bindAndValidate(c, req); err != nil {
 		return nil, nil, err
@@ -61,7 +61,7 @@ func bindRequestRunAndSaveResult(c echo.Context) (*user_solutions_results.UserSo
 		return nil, nil, errors.New(fmt.Sprintf("got status code %d from the Testrer API", resp.StatusCode))
 	}
 
-	usr := &user_solutions_results.UserSolutionsResults{}
+	usr := &user_solutions_results.UserSolutionResult{}
 	if err = json.NewDecoder(resp.Body).Decode(usr); err != nil {
 		return nil, nil, err
 	}
@@ -181,7 +181,7 @@ func insertSolution(c echo.Context, req *RequestForTesting, userId int) (*Insert
 	return &InsertedSolution{Id: us.Id, LastModified: us.LastModified}, err
 }
 
-func insertUserSolutionResult(usr *user_solutions_results.UserSolutionsResults, userId, testId, solutionId int) error {
+func insertUserSolutionResult(usr *user_solutions_results.UserSolutionResult, userId, testId, solutionId int) error {
 	usr.UserId = userId
 	usr.TestId = testId
 	usr.UserSolutionId = solutionId

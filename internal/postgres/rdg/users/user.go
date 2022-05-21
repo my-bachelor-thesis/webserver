@@ -37,7 +37,7 @@ func (user *User) UpdateFirstLastAndUsername() error {
 	return err
 }
 
-func (user *User) UpdateEmail() error {
+func (user *User) UpdateEmailAndDeactivate() error {
 	statement := "update users set email = $1, activated = false where id = $2"
 	_, err := postgres.GetPool().Exec(postgres.GetCtx(), statement, user.Email, user.Id)
 	user.Activated = false

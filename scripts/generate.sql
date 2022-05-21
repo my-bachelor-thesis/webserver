@@ -1,7 +1,7 @@
 -- truncate all
 
 truncate table user_solutions_results, user_solutions_tests, last_opened ,users, tests, tasks, user_solutions,
-    tokens_for_password_reset, tokens_for_registration;
+    tokens_for_password_reset, tokens_for_verification;
 
 -- insert default user
 

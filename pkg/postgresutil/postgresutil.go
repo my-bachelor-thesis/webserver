@@ -3,6 +3,7 @@ package postgresutil
 import (
 	"errors"
 	"fmt"
+	"github.com/jackc/pgconn"
 	"strings"
 )
 
@@ -47,4 +48,11 @@ func IsNoRowsInResultErr(err error) bool {
 		return false
 	}
 	return err.Error() == ErrNoRowsInResult.Error()
+}
+
+func IsUniqueConstraintErr(err error) bool {
+	if pgErr, ok := err.(*pgconn.PgError); ok && pgErr.Code == "23505" {
+		return true
+	}
+	return false
 }

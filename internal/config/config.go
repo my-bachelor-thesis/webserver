@@ -11,10 +11,13 @@ var config Config
 
 type Config struct {
 	Port         int
+	Url          string
 	IsProduction bool
 	PostgresURL  string
 	JWTSecret    string
 	TesterApiURL string
+	Email        string
+	EmailSecret  string
 }
 
 func LoadConfig() error {

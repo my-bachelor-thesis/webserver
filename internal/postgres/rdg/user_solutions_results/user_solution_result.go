@@ -20,7 +20,7 @@ type InfoForStatistic struct {
 	BinarySize      float32 `json:"binary_size"`
 }
 
-type UserSolutionsResults struct {
+type UserSolutionResult struct {
 	UserSolutionId int    `json:"user_solution_id"`
 	TestId         int    `json:"test_id"`
 	UserId         int    `json:"user_id"`
@@ -29,7 +29,7 @@ type UserSolutionsResults struct {
 	InfoForStatistic
 }
 
-func (usr *UserSolutionsResults) Insert() error {
+func (usr *UserSolutionResult) Insert() error {
 	statement := fmt.Sprintf(`
 	insert into %s (%s)
 	values (%s)`, tableName, allFields, postgresutil.GeneratePlaceholders(allFields))
@@ -37,7 +37,7 @@ func (usr *UserSolutionsResults) Insert() error {
 	return err
 }
 
-func getInsertFields(usr *UserSolutionsResults) (res []interface{}) {
+func getInsertFields(usr *UserSolutionResult) (res []interface{}) {
 	res = append(res, usr.UserSolutionId, usr.TestId, usr.UserId, usr.ExitCode, usr.Output, usr.CompilationTime,
 		usr.RealTime, usr.KernelTime, usr.UserTime, usr.MaxRamUsage, usr.BinarySize)
 	return

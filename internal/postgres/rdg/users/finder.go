@@ -24,7 +24,7 @@ func getBySomething(fieldName, fieldValue string) (*User, error) {
 	statement := fmt.Sprintf("select %s from users where %s = $1", allFields, fieldName)
 	user := User{}
 	err := load(postgres.GetPool().QueryRow(postgres.GetCtx(), statement, fieldValue), &user)
-	if err == nil && (user.Id == 0 || !user.Activated) {
+	if err == nil && user.Id == 0 {
 		err = postgresutil.ErrNoRowsInResult
 	}
 	return &user, err
