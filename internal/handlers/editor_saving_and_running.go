@@ -15,7 +15,7 @@ import (
 
 type RequestForTesting struct {
 	Solution   string `json:"solution" validate:"required"`
-	SolutionId int    `json:"solution_id" validate:"required"`
+	SolutionId int    `json:"solution_id"`
 	Test       string `json:"test" validate:"required"`
 	TestId     int    `json:"test_id" validate:"required"`
 	TaskId     int    `json:"task_id" validate:"required"`

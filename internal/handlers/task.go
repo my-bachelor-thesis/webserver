@@ -3,9 +3,12 @@ package handlers
 import (
 	"github.com/labstack/echo/v4"
 	"net/http"
+	"strconv"
+	"webserver/internal/postgres/rdg/task_with_solutions_and_tests"
 	"webserver/internal/postgres/rdg/tasks"
 	"webserver/internal/postgres/rdg/tests"
 	"webserver/internal/postgres/rdg/user_solutions"
+	"webserver/internal/postgres/transaction_scripts"
 	"webserver/pkg/postgresutil"
 )
 
@@ -72,19 +75,8 @@ func ApproveTaskPost(c echo.Context) error {
 }
 
 func AddPostPost(c echo.Context) error {
-	type nameAndCode struct {
-		Name     string `json:"name"`
-		Code     string `json:"code" validate:"required"`
-		Language string `json:"language" validate:"required"`
-	}
-	var request struct {
-		Title           string         `json:"title" validate:"required"`
-		Difficulty      string         `json:"difficulty" validate:"required"`
-		Description     string         `json:"description" validate:"required"`
-		FinalTests      []*nameAndCode `json:"final_tests" validate:"required"`
-		PublicTests     []*nameAndCode `json:"pubic_tests"`
-		PublicSolutions []*nameAndCode `json:"public_solutions"`
-	}
+	// TODO: move to transaction script
+	var request task_with_solutions_and_tests.TaskWithSolutionsAndTests
 
 	if err := bindAndValidate(c, &request); err != nil {
 		return err
@@ -104,8 +96,20 @@ func AddPostPost(c echo.Context) error {
 		Difficulty: request.Difficulty,
 		Text:       request.Description,
 	}
-	if err = task.Insert(); err != nil {
-		return err
+
+	// if updating
+	if request.TaskId != 0 {
+		task.Id = request.TaskId
+		if err = task.UpdateTitleDifficultyAndText(); err != nil {
+			return err
+		}
+		if err := transaction_scripts.DeleteAllPublicOrFinal(task.Id); err != nil {
+			return err
+		}
+	} else {
+		if err = task.Insert(); err != nil {
+			return err
+		}
 	}
 
 	if len(request.PublicSolutions) > 0 {
@@ -125,7 +129,7 @@ func AddPostPost(c echo.Context) error {
 		}
 	}
 
-	fillTest := func(newTest *tests.Test, testFromRequest *nameAndCode) {
+	fillTest := func(newTest *tests.Test, testFromRequest *task_with_solutions_and_tests.NameAndCode) {
 		newTest.Name = testFromRequest.Name
 		newTest.Public = true
 		newTest.UserId = claims.UserId
@@ -155,4 +159,26 @@ func AddPostPost(c echo.Context) error {
 		finalTests = append(finalTests, &t)
 	}
 	return tests.InsertMany(finalTests)
+}
+
+func UnpublishedSavedTaskGet(c echo.Context) error {
+	solutionId, err := strconv.Atoi(c.Param("task-id"))
+	if err != nil {
+		return err
+	}
+
+	user, err := getUserFromJWTCookie(c)
+	if err != nil {
+		return err
+	}
+
+	task, err := task_with_solutions_and_tests.GetByTaskId(solutionId, user.Id)
+	if postgresutil.IsNoRowsInResultErr(err) {
+		return c.JSON(http.StatusMethodNotAllowed, "Task not found")
+	}
+	if err != nil {
+		return err
+	}
+
+	return c.JSON(http.StatusOK, task)
 }

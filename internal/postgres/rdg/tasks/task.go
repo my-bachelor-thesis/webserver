@@ -51,3 +51,10 @@ func (task *Task) ApproveAndPublish() error {
 	_, err := postgres.GetPool().Exec(postgres.GetCtx(), statement, task.ApproverId, task.Id)
 	return err
 }
+
+func (task *Task) UpdateTitleDifficultyAndText() error {
+	statement := "update tasks set title = $1, difficulty = $2, text = $3 where id = $4 and author_id = $5"
+	_, err := postgres.GetPool().Exec(postgres.GetCtx(), statement,
+		task.Title, task.Difficulty, task.Text, task.Id, task.AuthorId)
+	return err
+}

@@ -11,6 +11,19 @@ create table users
     activated  bool           not null
 );
 
+drop table if exists tasks cascade;
+create table tasks
+(
+    id           serial primary key,
+    author_id    int default 0 references users on delete set default not null,
+    approver_id  int default 0 references users on delete set default not null,
+    title        varchar                                              not null,
+    difficulty   varchar                                              not null,
+    is_published boolean                                              not null,
+    added_on     timestamp with time zone                             not null,
+    text         varchar                                              not null
+);
+
 drop table if exists tests cascade;
 create table tests
 (
@@ -23,19 +36,6 @@ create table tests
     task_id       int references tasks on delete cascade               not null,
     language      varchar                                              not null,
     code          varchar                                              not null
-);
-
-drop table if exists tasks cascade;
-create table tasks
-(
-    id           serial primary key,
-    author_id    int default 0 references users on delete set default not null,
-    approver_id  int default 0 references users on delete set default not null,
-    title        varchar                                              not null,
-    difficulty   varchar                                              not null,
-    is_published boolean                                              not null,
-    added_on     timestamp with time zone                             not null,
-    text         varchar                                              not null
 );
 
 drop table if exists user_solutions cascade;

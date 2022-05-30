@@ -52,9 +52,44 @@ values (1, 1, 'Fizz buzz', 'easy',
 -- insert primes into tasks
 
 insert into tasks (author_id, approver_id, title, difficulty, is_published, added_on, text)
-values (1, 1, 'Get first 100 primes', 'easy',
+values (1, 1, 'Get first 1000 primes', 'easy',
         true, CURRENT_TIMESTAMP,
         'Rewrite already an existing solution in Go into Python');
+
+-- insert "some of two" into tasks
+
+insert into tasks (author_id, approver_id, title, difficulty, is_published, added_on, text)
+values (1, 1, 'Some of two', 'easy', true, CURRENT_TIMESTAMP,
+        'Write a function named "Sum", which will take two arguments - the first one is an array of numbers and the second one is a number. Return indexes of two numbers from the array which sum to the second argument. If such numbers don''t exist, return an empty array');
+
+-- insert "some of two" into tests
+insert into tests (last_modified, final, name, public, user_id, task_id, language, code)
+values (CURRENT_TIMESTAMP, true, 'final test', true, 1, 3, 'go', 'package main
+
+import (
+	"reflect"
+	"testing"
+)
+
+func TestSum(t *testing.T) {
+	testTable := []struct {
+		inputArr, want []int
+		sum            int
+	}{
+		{inputArr: []int{2, 7, 11, 15}, sum: 9, want: []int{0, 1}},
+		{inputArr: []int{3, 2, 4}, sum: 6, want: []int{1, 2}},
+		{inputArr: []int{2, 7, 11, 15}, sum: 90, want: []int{}},
+	}
+
+	for _, test := range testTable {
+		got := Sum(test.inputArr, test.sum)
+		if !reflect.DeepEqual(got, test.want) {
+			t.Errorf("got: %v, but want: %v. Input was %v and %d",
+				got, test.want, test.inputArr, test.sum)
+		}
+	}
+}
+');
 
 -- insert fizzbuzz into tests
 
@@ -94,14 +129,18 @@ import "testing"
 func TestPrimes(t *testing.T) {
 	got := primes()
 
+	if len(got) != 1000 {
+		t.Errorf("got an array with length %d, want an array with length 1000", len(got))
+	}
+
 	tests := []struct {
 		name      string
 		expecting int
 		got       int
 	}{
-		{name: "on index 1", expecting: 2, got: got[1]},
-		{name: "on index 9", expecting: 23, got: got[9]},
-		{name: "on index 89", expecting: 461, got: got[89]},
+		{name: "on index 45", expecting: 197, got: got[45]},
+		{name: "on index 234", expecting: 1481, got: got[234]},
+		{name: "on index 980", expecting: 7723, got: got[980]},
 	}
 	for _, test := range tests {
 		t.Run(test.name, func(t *testing.T) {
@@ -110,14 +149,16 @@ func TestPrimes(t *testing.T) {
 			}
 		})
 	}
-}');
+}
+');
 
 insert into tests (last_modified, final, name, public, user_id, task_id, language, code)
 values (CURRENT_TIMESTAMP, true, 'final test', true, 1, 2, 'python', 'def test_primes():
-	got = primes()
-	assert got[1] == 2
-	assert got[9] == 23
-	assert got[89] == 461');
+    got = primes()
+    assert len(got) == 1000
+    assert got[45] == 197
+    assert got[234] == 1481
+    assert got[980] == 7723');
 
 -- insert fizzbuzz into user_solutions
 
@@ -147,9 +188,11 @@ func FizzBuzz1_000_000() []string {
 -- insert primes into user_solutions
 
 insert into user_solutions (user_id, task_id, last_modified, language, name, public, code)
-values (1, 2, CURRENT_TIMESTAMP, 'go', 'my solution go', false, 'package main
+values (1, 2, CURRENT_TIMESTAMP, 'go', 'solution in Go', true, 'package main
 
-import "math"
+import (
+	"math"
+)
 
 func primes() (res []int) {
 	isPrime := func(n int) bool {
@@ -162,7 +205,7 @@ func primes() (res []int) {
 		return true
 	}
 
-	for i := 1; len(res) <= 100; i++ {
+	for i := 1; len(res) <= 999; i++ {
 		if isPrime(i) {
 			res = append(res, i)
 		}
@@ -170,19 +213,19 @@ func primes() (res []int) {
 	return
 }');
 
-insert into user_solutions (user_id, task_id, last_modified, language, name, public, code)
-values (1, 2, CURRENT_TIMESTAMP, 'python', 'my python solution', false, 'def is_prime(n):
-	for i in range(2, int(n**1 / 2) + 1):
-		if n % i == 0:
-			return False
-	return True
-
-def primes():
-	res = []
-	i = 1
-	while len(res) < 100:
-		if is_prime(i):
-			res.append(i)
-		i += 1
-	return res');
-
+-- insert into user_solutions (user_id, task_id, last_modified, language, name, public, code)
+-- values (1, 2, CURRENT_TIMESTAMP, 'python', 'my python solution', false, 'def is_prime(n):
+-- 	for i in range(2, int(n**1 / 2) + 1):
+-- 		if n % i == 0:
+-- 			return False
+-- 	return True
+--
+-- def primes():
+-- 	res = []
+-- 	i = 1
+-- 	while len(res) < 100:
+-- 		if is_prime(i):
+-- 			res.append(i)
+-- 		i += 1
+-- 	return res');
+--
