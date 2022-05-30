@@ -14,7 +14,7 @@ import (
 )
 
 var frontendEndpoints = [...]string{"/", "add-task", "task", "login", "register", "logout", "about",
-	"account-settings", "not-published", "approve", "statistic", "promote-user", "reset-password-request",
+	"account-settings", "my-tasks", "approve", "statistic", "promote-user", "reset-password-request",
 	"email-verification", "password-reset", "edit-task"}
 
 // custom form validator
@@ -108,9 +108,11 @@ func main() {
 	// from add-task
 	e.POST("/add-task/form", handlers.AddPostPost)
 
-	// publish
-	e.GET("/not-published/all", handlers.AllTasksUnpublishedGet)
-	e.POST("/not-published/publish", handlers.PublishTaskPost)
+	// my tasks
+	e.GET("/my-tasks/all", handlers.AllUsersTasksGet)
+	e.POST("/my-tasks/publish", handlers.PublishTaskPost)
+	e.POST("/my-tasks/unpublish", handlers.UnpublishTaskPost)
+	e.POST("/my-tasks/delete", handlers.DeleteTaskPost)
 
 	// approve
 	e.GET("/not-approved/all", handlers.AllTasksUnapprovedGet)

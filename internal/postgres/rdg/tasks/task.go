@@ -40,8 +40,14 @@ func (task *Task) Publish() error {
 	return err
 }
 
+func (task *Task) Unpublish() error {
+	statement := "update tasks set is_published = false, approver_id = 0 where id = $1"
+	_, err := postgres.GetPool().Exec(postgres.GetCtx(), statement, task.Id)
+	return err
+}
+
 func (task *Task) Approve() error {
-	statement := "update tasks set approver_id = $1 where id = $2"
+	statement := "update tasks set approver_id = $1, added_on = CURRENT_TIMESTAMP where id = $2"
 	_, err := postgres.GetPool().Exec(postgres.GetCtx(), statement, task.ApproverId, task.Id)
 	return err
 }
@@ -56,5 +62,11 @@ func (task *Task) UpdateTitleDifficultyAndText() error {
 	statement := "update tasks set title = $1, difficulty = $2, text = $3 where id = $4 and author_id = $5"
 	_, err := postgres.GetPool().Exec(postgres.GetCtx(), statement,
 		task.Title, task.Difficulty, task.Text, task.Id, task.AuthorId)
+	return err
+}
+
+func (task *Task) Delete() error {
+	statement := "delete from tasks where id = $1"
+	_, err := postgres.GetPool().Exec(postgres.GetCtx(), statement, task.Id)
 	return err
 }

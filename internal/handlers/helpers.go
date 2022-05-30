@@ -21,6 +21,16 @@ func bindAndFind[T any](c echo.Context, getByIdFunc func(int) (T, error)) (*requ
 	return &req, obj, err
 }
 
+func bindAndFindWithUserId[T any](c echo.Context, getByIdFunc func(int, int) (T, error), userId int) (*requestWithIdAndName, T, error) {
+	var req requestWithIdAndName
+	if err := c.Bind(&req); err != nil {
+		return nil, *new(T), err
+	}
+	obj, err := getByIdFunc(req.Id, userId)
+	return &req, obj, err
+}
+
+
 func getUserFromJWTCookie(c echo.Context) (*users.User, error) {
 	claims, err := getClaimsFromRequest(c)
 	if err != nil {

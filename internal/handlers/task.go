@@ -13,36 +13,35 @@ import (
 )
 
 func AllTasksGet(c echo.Context) error {
-	t, err := tasks.GetApprovedAndPublished()
-	if err != nil {
-		if postgresutil.IsNoRowsInResultErr(err) {
-			return c.JSON(http.StatusOK, emptySliceResponse)
-		}
-		return err
-	}
-	return c.JSON(http.StatusOK, t)
+	search, date, name := GetSearchDateName(c)
+	tsks, err := tasks.GetApprovedAndPublishedByFilter(search, date, name)
+
+	return returnEmptySliceIfNoRows(c, tsks, err)
 }
 
-func AllTasksUnpublishedGet(c echo.Context) error {
-	t, err := tasks.GetUnpublished()
+func AllUsersTasksGet(c echo.Context) error {
+	user, err := getClaimsFromRequest(c)
 	if err != nil {
-		if postgresutil.IsNoRowsInResultErr(err) {
-			return c.JSON(http.StatusOK, emptySliceResponse)
-		}
 		return err
 	}
-	return c.JSON(http.StatusOK, t)
+
+	search, date, name := GetSearchDateName(c)
+
+	t, err := tasks.GetByAuthorIdAndFilter(user.UserId, search, date, name)
+	return returnEmptySliceIfNoRows(c, t, err)
 }
 
 func PublishTaskPost(c echo.Context) error {
-	_, task, err := bindAndFind(c, tasks.GetById)
-	if err != nil {
-		return err
-	}
 	claims, err := getClaimsFromRequest(c)
 	if err != nil {
 		return err
 	}
+
+	_, task, err := bindAndFindWithUserId(c, tasks.GetByIdAndAuthorId, claims.UserId)
+	if err != nil {
+		return err
+	}
+
 	if claims.IsAdmin {
 		task.ApproverId = claims.UserId
 		return task.ApproveAndPublish()
@@ -50,15 +49,46 @@ func PublishTaskPost(c echo.Context) error {
 	return task.Publish()
 }
 
-func AllTasksUnapprovedGet(c echo.Context) error {
-	t, err := tasks.GetUnapproved()
+func UnpublishTaskPost(c echo.Context) error {
+	claims, err := getClaimsFromRequest(c)
 	if err != nil {
-		if postgresutil.IsNoRowsInResultErr(err) {
-			return c.JSON(http.StatusOK, emptySliceResponse)
-		}
 		return err
 	}
-	return c.JSON(http.StatusOK, t)
+
+	_, task, err := bindAndFindWithUserId(c, tasks.GetByIdAndAuthorId, claims.UserId)
+	if err != nil {
+		return err
+	}
+	return task.Unpublish()
+}
+
+func DeleteTaskPost(c echo.Context) error {
+	claims, err := getClaimsFromRequest(c)
+	if err != nil {
+		return err
+	}
+
+	_, task, err := bindAndFindWithUserId(c, tasks.GetByIdAndAuthorId, claims.UserId)
+	if err != nil {
+		return err
+	}
+
+	return task.Delete()
+}
+
+func AllTasksUnapprovedGet(c echo.Context) error {
+	claims, err := getClaimsFromRequest(c)
+	if err != nil {
+		return err
+	}
+	if !claims.IsAdmin {
+		return c.JSON(http.StatusForbidden, "not admin, forbidden")
+	}
+
+	search, date, name := GetSearchDateName(c)
+
+	t, err := tasks.GetUnapproved(search, date, name)
+	return returnEmptySliceIfNoRows(c, t, err)
 }
 
 func ApproveTaskPost(c echo.Context) error {
@@ -181,4 +211,21 @@ func UnpublishedSavedTaskGet(c echo.Context) error {
 	}
 
 	return c.JSON(http.StatusOK, task)
+}
+
+func GetSearchDateName(c echo.Context) (search, date, name string) {
+	search = c.QueryParam("search")
+	date = c.QueryParam("date")
+	name = c.QueryParam("name")
+	return search, date, name
+}
+
+func returnEmptySliceIfNoRows(c echo.Context, result interface{}, err error) error {
+	if err != nil {
+		if postgresutil.IsNoRowsInResultErr(err) {
+			return c.JSON(http.StatusOK, emptySliceResponse)
+		}
+		return err
+	}
+	return c.JSON(http.StatusOK, result)
 }

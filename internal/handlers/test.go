@@ -11,9 +11,11 @@ func UpdateTestNamePost(c echo.Context) error {
 	if err != nil {
 		return err
 	}
+
 	if test.Final || test.Public {
 		return c.JSON(http.StatusForbidden, "can't update this test")
 	}
+
 	test.Name = req.Name
 	return test.UpdateName()
 }

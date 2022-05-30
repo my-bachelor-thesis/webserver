@@ -8,37 +8,73 @@ import (
 )
 
 func GetById(id int) (*Task, error) {
+	return getByCondition(id, "id = $1", id)
+}
+
+func GetByIdAndAuthorId(id, authorId int) (*Task, error) {
+	return getByCondition(id, "id = $1 and author_id = $2", id, authorId)
+}
+
+func getByCondition(id int, condition string, args ...interface{}) (*Task, error) {
 	if id == 0 {
 		return nil, postgresutil.ErrNoRowsInResult
 	}
-	statement := fmt.Sprintf("select %s from tasks where id = $1", allFieldReplacedTimestamp)
+	statement := fmt.Sprintf("select %s from tasks where %s", allFieldReplacedTimestamp, condition)
 	task := Task{}
-	err := load(postgres.GetPool().QueryRow(postgres.GetCtx(), statement, id), &task)
+	err := load(postgres.GetPool().QueryRow(postgres.GetCtx(), statement, args...), &task)
 	return &task, err
 }
 
-func GetApprovedAndPublished() ([]*Task, error) {
-	return getManyWithConditions("is_published = true and approver_id != 0")
+func GetUnapproved(keyword, dateSort, nameSort string) ([]*Task, error) {
+	condition := "is_published = true and approver_id = 0"
+	return getBySearchBarFilers(condition, keyword, dateSort, nameSort, []interface{}{})
 }
 
-func GetUnapproved() ([]*Task, error) {
-	return getManyWithConditions("is_published = true and approver_id = 0")
+func GetByAuthorIdAndFilter(userId int, keyword, dateSort, nameSort string) ([]*Task, error) {
+	condition := "author_id = $1"
+	return getBySearchBarFilers(condition, keyword, dateSort, nameSort, []interface{}{userId})
 }
 
-func GetUnpublished() ([]*Task, error) {
-	return getManyWithConditions("is_published = false")
+func GetApprovedAndPublishedByFilter(keyword, dateSort, nameSort string) ([]*Task, error) {
+	condition := "is_published = true and approver_id != 0"
+	return getBySearchBarFilers(condition, keyword, dateSort, nameSort, []interface{}{})
 }
 
-func getManyWithConditions(conditions string) ([]*Task, error) {
-	statement := fmt.Sprintf("select %s from tasks where %s", allFieldReplacedTimestamp, conditions)
-	rows, err := postgres.GetPool().Query(postgres.GetCtx(), statement)
+func getBySearchBarFilers(condition, keyword, dateSort, nameSort string, conditionArgs []interface{}) ([]*Task, error) {
+	if keyword != "" {
+		condition += fmt.Sprintf(" and (strpos(lower(title), $%d) > 0 or strpos(lower(text), $%d) > 0)",
+			len(conditionArgs)+1, len(conditionArgs)+2)
+		conditionArgs = append(conditionArgs, keyword, keyword)
+	}
+
+	sort := "order by added_on desc"
+	if dateSort == "asc" {
+		sort = "order by added_on asc"
+	}
+
+	if nameSort == "desc" {
+		sort += ", title desc"
+	} else {
+		sort += ", title asc"
+	}
+
+	return getManyWithConditions(condition, sort, conditionArgs...)
+}
+
+func getManyWithConditions(conditions, sort string, args ...interface{}) ([]*Task, error) {
+	statement := fmt.Sprintf("select %s from tasks where %s %s", allFieldReplacedTimestamp, conditions, sort)
+	rows, err := postgres.GetPool().Query(postgres.GetCtx(), statement, args...)
 	if err != nil {
 		return nil, err
 	}
+	return loadTasks(rows)
+}
+
+func loadTasks(rows pgx.Rows) ([]*Task, error) {
 	var tasks []*Task
 	for rows.Next() {
 		task := Task{}
-		if err = load(rows, &task); err != nil {
+		if err := load(rows, &task); err != nil {
 			return nil, err
 		}
 		if task.Id == 0 {
@@ -49,7 +85,7 @@ func getManyWithConditions(conditions string) ([]*Task, error) {
 	if len(tasks) == 0 {
 		return nil, postgresutil.ErrNoRowsInResult
 	}
-	return tasks, err
+	return tasks, nil
 }
 
 func load(qr pgx.Row, task *Task) error {
