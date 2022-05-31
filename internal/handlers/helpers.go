@@ -30,7 +30,6 @@ func bindAndFindWithUserId[T any](c echo.Context, getByIdFunc func(int, int) (T,
 	return &req, obj, err
 }
 
-
 func getUserFromJWTCookie(c echo.Context) (*users.User, error) {
 	claims, err := getClaimsFromRequest(c)
 	if err != nil {
@@ -39,7 +38,7 @@ func getUserFromJWTCookie(c echo.Context) (*users.User, error) {
 	return users.GetById(claims.UserId)
 }
 
-func bindAndValidate[T any](c echo.Context, request T) (error) {
+func bindAndValidate[T any](c echo.Context, request T) error {
 	if err := c.Bind(request); err != nil {
 		return err
 	}

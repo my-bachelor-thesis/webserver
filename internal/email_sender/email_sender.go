@@ -35,6 +35,12 @@ func SendVerificationToken(receiverMail, token string) error {
 		fmt.Sprintf("Click here to verify your email: %s", url))
 }
 
+func SendDenial(receiverMail, taskName, adminName, adminEmail, reason string) error {
+	return send(receiverMail, "Your task has been moved to unpublished",
+		fmt.Sprintf("Your task %q has been moved to the unpublished state by %q(%q). The reason for it is: %q",
+			taskName, adminName, adminEmail, reason))
+}
+
 func GenerateToken() string {
 	length := 20
 	b := make([]byte, length)

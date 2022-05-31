@@ -12,13 +12,14 @@ func GetByTaskId(taskId int) (*InitialDataForEditor, error) {
 		t.title,
 		t.difficulty,
 		t.text,
+		t.author_id,
 		to_char(t.added_on, 'DD.MM.YY, HH24:MI:SS'),
 		(select u.first_name || ' ' || u.last_name from users u where u.id = t.author_id) author,
 		(select u.first_name || ' ' || u.last_name from users u where u.id = t.approver_id) approver
 	from tasks t where id = $1`
 	initData := InitialDataForEditor{}
 	if err := postgres.GetPool().QueryRow(postgres.GetCtx(), statement, taskId).Scan(&initData.Title, &initData.Difficulty,
-		&initData.Text, &initData.AddedOn, &initData.Author, &initData.Approver); err != nil {
+		&initData.Text, &initData.AuthorId, &initData.AddedOn, &initData.Author, &initData.Approver); err != nil {
 		return nil, err
 	}
 

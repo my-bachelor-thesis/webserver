@@ -6,6 +6,7 @@ type InitialDataForEditor struct {
 	Text       string   `json:"text"`
 	AddedOn    string   `json:"added_on"`
 	Author     string   `json:"author"`
+	AuthorId   int      `json:"author_id"`
 	Approver   string   `json:"approver"`
 	Languages  []string `json:"languages"`
 }

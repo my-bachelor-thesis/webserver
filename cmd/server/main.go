@@ -117,6 +117,7 @@ func main() {
 	// approve
 	e.GET("/not-approved/all", handlers.AllTasksUnapprovedGet)
 	e.POST("/not-approved/approve", handlers.ApproveTaskPost)
+	e.POST("/not-approved/deny", handlers.DenyTaskPost)
 
 	// account setting
 	e.POST("/account-setting/update-user-info", handlers.UpdateUserInfoPost)

@@ -52,6 +52,12 @@ func (task *Task) Approve() error {
 	return err
 }
 
+func (task *Task) Unapprove() error {
+	statement := "update tasks set approver_id = 0 where id = $1"
+	_, err := postgres.GetPool().Exec(postgres.GetCtx(), statement, task.Id)
+	return err
+}
+
 func (task *Task) ApproveAndPublish() error {
 	statement := "update tasks set approver_id = $1, is_published = true where id = $2"
 	_, err := postgres.GetPool().Exec(postgres.GetCtx(), statement, task.ApproverId, task.Id)

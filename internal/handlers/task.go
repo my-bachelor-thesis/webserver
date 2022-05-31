@@ -4,10 +4,12 @@ import (
 	"github.com/labstack/echo/v4"
 	"net/http"
 	"strconv"
+	"webserver/internal/email_sender"
 	"webserver/internal/postgres/rdg/task_with_solutions_and_tests"
 	"webserver/internal/postgres/rdg/tasks"
 	"webserver/internal/postgres/rdg/tests"
 	"webserver/internal/postgres/rdg/user_solutions"
+	"webserver/internal/postgres/rdg/users"
 	"webserver/internal/postgres/transaction_scripts"
 	"webserver/pkg/postgresutil"
 )
@@ -102,6 +104,44 @@ func ApproveTaskPost(c echo.Context) error {
 	}
 	task.ApproverId = claims.UserId
 	return task.Approve()
+}
+
+func DenyTaskPost(c echo.Context) error {
+	var request struct {
+		Reason   string `json:"reason" validate:"required"`
+		AuthorId int    `json:"author_id" validate:"required"`
+		TaskId   int    `json:"task_id" validate:"required"`
+	}
+
+	if err := bindAndValidate(c, &request); err != nil {
+		return err
+	}
+
+	task, err := tasks.GetById(request.TaskId)
+	if err != nil {
+		return err
+	}
+
+	claims, err := getClaimsFromRequest(c)
+	if err != nil {
+		return err
+	}
+
+	admin, err := users.GetById(claims.UserId)
+	if err != nil {
+		return err
+	}
+
+	user, err := users.GetById(request.AuthorId)
+	if err != nil {
+		return err
+	}
+
+	if err := task.Unapprove(); err != nil {
+		return err
+	}
+
+	return email_sender.SendDenial(user.Email, task.Title, admin.Username, admin.Email, request.Reason)
 }
 
 func AddPostPost(c echo.Context) error {
