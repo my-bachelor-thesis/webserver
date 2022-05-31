@@ -132,6 +132,7 @@ func main() {
 	// other
 	e.POST("/do-password-reset", handlers.ResetPasswordPost)
 	e.POST("/email-verification", handlers.EmailVerificationPost)
+	e.POST("/promote-user-form", handlers.PromoteToAdmin)
 
 	e.Logger.Fatal(e.Start(fmt.Sprintf(":%d", config.GetInstance().Port)))
 }

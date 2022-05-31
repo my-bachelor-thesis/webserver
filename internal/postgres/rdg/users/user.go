@@ -55,3 +55,9 @@ func (user *User) UpdateActivatedStatus() error {
 	_, err := postgres.GetPool().Exec(postgres.GetCtx(), statement, user.Activated, user.Id)
 	return err
 }
+
+func (user *User) PromoteToAdmin() error {
+	statement := "update users set is_admin = true where id = $1"
+	_, err := postgres.GetPool().Exec(postgres.GetCtx(), statement, user.Id)
+	return err
+}

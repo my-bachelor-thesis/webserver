@@ -295,3 +295,28 @@ func EmailVerificationPost(c echo.Context) error {
 
 	return verificationToken.Delete()
 }
+
+func PromoteToAdmin(c echo.Context) error {
+	var request struct {
+		Username string `json:"username_to_promote" validate:"required"`
+	}
+	if err := bindAndValidate(c, &request); err != nil {
+		return err
+	}
+
+	claims, err := getClaimsFromRequest(c)
+	if err != nil {
+		return err
+	}
+
+	if !claims.IsAdmin {
+		return c.JSON(http.StatusForbidden, "not a admin")
+	}
+
+	user, err := users.GetByUsername(request.Username)
+	if err != nil {
+		return err
+	}
+
+	return user.PromoteToAdmin()
+}
