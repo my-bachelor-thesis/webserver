@@ -79,15 +79,15 @@ func main() {
 	// requests from home
 	e.GET("/home/all-tasks", handlers.AllTasksGet)
 
-	// requests from editor TODO: all prefix editor
-	e.GET("/init-data/:id", handlers.InitDataForEditorGet)
-	e.GET("/solutions-tests/:id/:lang", handlers.SolutionsAndTestsGet)
-	e.POST("/test/:lang", handlers.OnlyTestPost)
-	e.POST("/test-and-save-solution/:lang", handlers.TestAndSaveSolutionPost)
-	e.POST("/test-and-save-test/:lang", handlers.TestAndSaveTestPost)
-	e.POST("/test-and-save-both/:lang", handlers.TestAndSaveBothPost)
-	e.GET("/code-of-test/:id", handlers.CodeOfTestGet)
-	e.GET("/code-of-solution/:id", handlers.CodeOfSolutionGet)
+	// requests from editor
+	e.GET("/editor/init-data/:id", handlers.InitDataForEditorGet)
+	e.GET("/editor/solutions-tests/:id/:lang", handlers.SolutionsAndTestsGet)
+	e.POST("/editor/test/:lang", handlers.OnlyTestPost)
+	e.POST("/editor/test-and-save-solution/:lang", handlers.TestAndSaveSolutionPost)
+	e.POST("/editor/test-and-save-test/:lang", handlers.TestAndSaveTestPost)
+	e.POST("/editor/test-and-save-both/:lang", handlers.TestAndSaveBothPost)
+	e.GET("/editor/code-of-test/:id", handlers.CodeOfTestGet)
+	e.GET("/editor/code-of-solution/:id", handlers.CodeOfSolutionGet)
 	e.POST("/editor/change-name-in-test", handlers.UpdateTestNamePost)
 	e.POST("/editor/change-name-in-usersolution", handlers.UpdateUserSolutionNamePost)
 	e.POST("/editor/change-testid-for-usersolution", handlers.UpdateTestIdForUserSolutionPost)
@@ -104,7 +104,6 @@ func main() {
 	e.POST("/login/form", handlers.LoginPost)
 	e.POST("/login/reset-password", handlers.RequestResetPasswordPost)
 
-	// TODO: change to path/action
 	// from add-task
 	e.POST("/add-task/form", handlers.AddPostPost)
 
