@@ -1,6 +1,7 @@
 package handlers
 
 import (
+	"errors"
 	"github.com/labstack/echo/v4"
 	"net/http"
 	"strconv"
@@ -15,8 +16,11 @@ import (
 )
 
 func AllTasksGet(c echo.Context) error {
-	search, date, name, difficulty := GetFilterParams(c)
-	tsks, err := tasks.GetApprovedAndPublishedByFilter(search, date, name, difficulty)
+	search, date, name, difficulty, page, err := GetFilterParams(c)
+	if err != nil {
+		return err
+	}
+	tsks, err := tasks.GetApprovedAndPublishedByFilter(search, date, name, difficulty, page)
 
 	return returnEmptySliceIfNoRows(c, tsks, err)
 }
@@ -27,9 +31,12 @@ func AllUsersTasksGet(c echo.Context) error {
 		return err
 	}
 
-	search, date, name, difficulty := GetFilterParams(c)
+	search, date, name, difficulty, page, err := GetFilterParams(c)
+	if err != nil {
+		return err
+	}
 
-	t, err := tasks.GetByAuthorIdAndFilter(user.UserId, search, date, name, difficulty)
+	t, err := tasks.GetByAuthorIdAndFilter(user.UserId, search, date, name, difficulty, page)
 	return returnEmptySliceIfNoRows(c, t, err)
 }
 
@@ -87,9 +94,12 @@ func AllTasksUnapprovedGet(c echo.Context) error {
 		return c.JSON(http.StatusForbidden, "not admin, forbidden")
 	}
 
-	search, date, name, difficulty := GetFilterParams(c)
+	search, date, name, difficulty, page, err := GetFilterParams(c)
+	if err != nil {
+		return err
+	}
 
-	t, err := tasks.GetUnapproved(search, date, name, difficulty)
+	t, err := tasks.GetUnapproved(search, date, name, difficulty, page)
 	return returnEmptySliceIfNoRows(c, t, err)
 }
 
@@ -253,12 +263,16 @@ func UnpublishedSavedTaskGet(c echo.Context) error {
 	return c.JSON(http.StatusOK, task)
 }
 
-func GetFilterParams(c echo.Context) (search, date, name, difficulty string) {
+func GetFilterParams(c echo.Context) (search, date, name, difficulty string, page int, err error) {
 	search = c.QueryParam("search")
 	date = c.QueryParam("date")
 	name = c.QueryParam("name")
 	difficulty = c.QueryParam("difficulty")
-	return search, date, name, difficulty
+	page, err = strconv.Atoi(c.QueryParam("page"))
+	if err == nil && page < 1 {
+		err = errors.New("wrong page")
+	}
+	return
 }
 
 func returnEmptySliceIfNoRows(c echo.Context, result interface{}, err error) error {
