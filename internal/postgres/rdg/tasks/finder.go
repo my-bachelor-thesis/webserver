@@ -25,26 +25,35 @@ func getByCondition(id int, condition string, args ...interface{}) (*Task, error
 	return &task, err
 }
 
-func GetUnapproved(keyword, dateSort, nameSort string) ([]*Task, error) {
+func GetUnapproved(keyword, dateSort, nameSort, difficulty string) ([]*Task, error) {
 	condition := "is_published = true and approver_id = 0"
-	return getBySearchBarFilers(condition, keyword, dateSort, nameSort, []interface{}{})
+	return getBySearchBarFilers(condition, keyword, dateSort, nameSort, difficulty, []interface{}{})
 }
 
-func GetByAuthorIdAndFilter(userId int, keyword, dateSort, nameSort string) ([]*Task, error) {
+func GetByAuthorIdAndFilter(userId int, keyword, dateSort, nameSort, difficulty string) ([]*Task, error) {
 	condition := "author_id = $1"
-	return getBySearchBarFilers(condition, keyword, dateSort, nameSort, []interface{}{userId})
+	return getBySearchBarFilers(condition, keyword, dateSort, nameSort, difficulty, []interface{}{userId})
 }
 
-func GetApprovedAndPublishedByFilter(keyword, dateSort, nameSort string) ([]*Task, error) {
+func GetApprovedAndPublishedByFilter(keyword, dateSort, nameSort, difficulty string) ([]*Task, error) {
 	condition := "is_published = true and approver_id != 0"
-	return getBySearchBarFilers(condition, keyword, dateSort, nameSort, []interface{}{})
+	return getBySearchBarFilers(condition, keyword, dateSort, nameSort, difficulty, []interface{}{})
 }
 
-func getBySearchBarFilers(condition, keyword, dateSort, nameSort string, conditionArgs []interface{}) ([]*Task, error) {
+func getBySearchBarFilers(condition, keyword, dateSort, nameSort, difficulty string, conditionArgs []interface{}) ([]*Task, error) {
 	if keyword != "" {
 		condition += fmt.Sprintf(" and (strpos(lower(title), $%d) > 0 or strpos(lower(text), $%d) > 0)",
 			len(conditionArgs)+1, len(conditionArgs)+2)
 		conditionArgs = append(conditionArgs, keyword, keyword)
+	}
+
+	switch difficulty {
+	case "easy":
+		condition += " and difficulty = 'easy'"
+	case "medium":
+		condition += " and difficulty = 'medium'"
+	case "hard":
+		condition += " and difficulty = 'hard'"
 	}
 
 	sort := "order by added_on desc"

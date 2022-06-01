@@ -15,8 +15,8 @@ import (
 )
 
 func AllTasksGet(c echo.Context) error {
-	search, date, name := GetSearchDateName(c)
-	tsks, err := tasks.GetApprovedAndPublishedByFilter(search, date, name)
+	search, date, name, difficulty := GetFilterParams(c)
+	tsks, err := tasks.GetApprovedAndPublishedByFilter(search, date, name, difficulty)
 
 	return returnEmptySliceIfNoRows(c, tsks, err)
 }
@@ -27,9 +27,9 @@ func AllUsersTasksGet(c echo.Context) error {
 		return err
 	}
 
-	search, date, name := GetSearchDateName(c)
+	search, date, name, difficulty := GetFilterParams(c)
 
-	t, err := tasks.GetByAuthorIdAndFilter(user.UserId, search, date, name)
+	t, err := tasks.GetByAuthorIdAndFilter(user.UserId, search, date, name, difficulty)
 	return returnEmptySliceIfNoRows(c, t, err)
 }
 
@@ -87,9 +87,9 @@ func AllTasksUnapprovedGet(c echo.Context) error {
 		return c.JSON(http.StatusForbidden, "not admin, forbidden")
 	}
 
-	search, date, name := GetSearchDateName(c)
+	search, date, name, difficulty := GetFilterParams(c)
 
-	t, err := tasks.GetUnapproved(search, date, name)
+	t, err := tasks.GetUnapproved(search, date, name, difficulty)
 	return returnEmptySliceIfNoRows(c, t, err)
 }
 
@@ -253,11 +253,12 @@ func UnpublishedSavedTaskGet(c echo.Context) error {
 	return c.JSON(http.StatusOK, task)
 }
 
-func GetSearchDateName(c echo.Context) (search, date, name string) {
+func GetFilterParams(c echo.Context) (search, date, name, difficulty string) {
 	search = c.QueryParam("search")
 	date = c.QueryParam("date")
 	name = c.QueryParam("name")
-	return search, date, name
+	difficulty = c.QueryParam("difficulty")
+	return search, date, name, difficulty
 }
 
 func returnEmptySliceIfNoRows(c echo.Context, result interface{}, err error) error {
