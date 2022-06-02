@@ -53,7 +53,7 @@ func (task *Task) Approve(tx postgres.PoolInterface) error {
 }
 
 func (task *Task) Unapprove(tx postgres.PoolInterface) error {
-	statement := "update tasks set approver_id = 0 where id = $1"
+	statement := "update tasks set approver_id = 0, is_published = false where id = $1"
 	_, err := tx.Exec(postgres.GetCtx(), statement, task.Id)
 	return err
 }

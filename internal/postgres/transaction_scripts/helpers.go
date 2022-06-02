@@ -36,3 +36,15 @@ func getUserFromJWTCookie(tx postgres.PoolInterface, c echo.Context) (*users.Use
 	}
 	return users.GetById(tx, claims.UserId)
 }
+
+type BadRequestError struct {
+	Message string
+}
+
+func (b *BadRequestError) Error() string {
+	return b.Message
+}
+
+func NewBadRequestError(msg string) *BadRequestError {
+	return &BadRequestError{Message: msg}
+}

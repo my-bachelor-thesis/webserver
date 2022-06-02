@@ -86,7 +86,7 @@ func RegisterPost(c echo.Context) error {
 	user.Activated = false
 
 	token := email_sender.GenerateToken()
-	verificationToken := tokens.TokenForVerification{UserId: user.Id, Token: token}
+	verificationToken := tokens.TokenForVerification{Token: token}
 
 	if err := transaction_scripts.RegisterUser(user, &verificationToken); err != nil {
 		return err
@@ -138,7 +138,11 @@ func UpdatePasswordPost(c echo.Context) error {
 		return err
 	}
 
-	return transaction_scripts.UpdateUserPassword(c, request.OldPassword, string(encrypted))
+	err = transaction_scripts.UpdateUserPassword(c, request.OldPassword, string(encrypted))
+	if err, ok := err.(*transaction_scripts.BadRequestError); ok {
+		return c.JSON(http.StatusBadRequest, err.Message)
+	}
+	return err
 }
 
 func UpdateEmailPost(c echo.Context) error {
@@ -150,6 +154,9 @@ func UpdateEmailPost(c echo.Context) error {
 	}
 
 	user, token, err := transaction_scripts.UpdateUserEmail(c, request.Email)
+	if err, ok := err.(*transaction_scripts.BadRequestError); ok {
+		return c.JSON(http.StatusBadRequest, err.Message)
+	}
 	if err != nil {
 		return err
 	}
@@ -166,6 +173,9 @@ func RequestResetPasswordPost(c echo.Context) error {
 	}
 
 	user, token, err := transaction_scripts.RequestResetUserPassword(request.Email)
+	if err, ok := err.(*transaction_scripts.BadRequestError); ok {
+		return c.JSON(http.StatusBadRequest, err.Message)
+	}
 	if err != nil {
 		return err
 	}
@@ -192,7 +202,11 @@ func ResetPasswordPost(c echo.Context) error {
 		return err
 	}
 
-	return transaction_scripts.ResetUserPassword(request.Token, string(encrypted))
+	err = transaction_scripts.ResetUserPassword(request.Token, string(encrypted))
+	if err, ok := err.(*transaction_scripts.BadRequestError); ok {
+		return c.JSON(http.StatusBadRequest, err.Message)
+	}
+	return err
 }
 
 func EmailVerificationPost(c echo.Context) error {
@@ -203,7 +217,11 @@ func EmailVerificationPost(c echo.Context) error {
 		return err
 	}
 
-	return transaction_scripts.UserEmailVerification(request.Token)
+	err := transaction_scripts.UserEmailVerification(request.Token)
+	if err, ok := err.(*transaction_scripts.BadRequestError); ok {
+		return c.JSON(http.StatusBadRequest, err.Message)
+	}
+	return err
 }
 
 func PromoteToAdminPost(c echo.Context) error {

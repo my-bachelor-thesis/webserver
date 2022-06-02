@@ -1,7 +1,6 @@
 package transaction_scripts
 
 import (
-	"errors"
 	"github.com/jackc/pgx/v4"
 	"github.com/labstack/echo/v4"
 	"webserver/internal/postgres"
@@ -22,7 +21,7 @@ func UpdateTestName(c echo.Context) error {
 	}
 
 	if test.Final || test.Public {
-		return errors.New( "can't update this test")
+		return NewBadRequestError( "can't update this test")
 	}
 
 	test.Name = req.Name

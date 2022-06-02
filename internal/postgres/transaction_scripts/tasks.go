@@ -27,9 +27,10 @@ func PublishTask(c echo.Context, claims *jwt.CustomClaims) error {
 
 	if claims.IsAdmin {
 		task.ApproverId = claims.UserId
-		return task.ApproveAndPublish(tx)
-	}
-	if err := task.Publish(tx); err != nil {
+		if err := task.ApproveAndPublish(tx); err != nil {
+			return err
+		}
+	} else if err := task.Publish(tx); err != nil {
 		return err
 	}
 
@@ -127,8 +128,7 @@ func DenyTask(claims *jwt.CustomClaims, taskId, authorId int) (task *tasks.Task,
 	return task, user, admin, tx.Commit(postgres.GetCtx())
 }
 
-func AddTask(c echo.Context, claims *jwt.CustomClaims,
-	request *task_with_solutions_and_tests.TaskWithSolutionsAndTests) error {
+func AddTask(claims *jwt.CustomClaims, request *task_with_solutions_and_tests.TaskWithSolutionsAndTests) error {
 
 	conn, tx, err := getConnectionFromPoolAndStartTrans(pgx.RepeatableRead)
 	if err != nil {

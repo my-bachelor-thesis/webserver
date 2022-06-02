@@ -1,7 +1,6 @@
 package transaction_scripts
 
 import (
-	"errors"
 	"github.com/jackc/pgx/v4"
 	"github.com/labstack/echo/v4"
 	"golang.org/x/crypto/bcrypt"
@@ -24,6 +23,7 @@ func RegisterUser(user *users.User, token *tokens.TokenForVerification) error {
 		return err
 	}
 
+	token.UserId = user.Id
 	if err := token.Insert(tx); err != nil {
 		return err
 	}
@@ -45,7 +45,7 @@ func UpdateUserEmail(c echo.Context, email string) (*users.User, string, error) 
 	}
 
 	if !user.Activated {
-		return nil, "", errors.New("can't change, your previous email wasn't verified")
+		return nil, "", NewBadRequestError("can't change, your previous email wasn't verified")
 	}
 
 	token := email_sender.GenerateToken()
@@ -60,7 +60,7 @@ func UpdateUserEmail(c echo.Context, email string) (*users.User, string, error) 
 		return nil, "", err
 	}
 
-	return user, token, tx.Rollback(postgres.GetCtx())
+	return user, token, tx.Commit(postgres.GetCtx())
 }
 
 func RequestResetUserPassword(email string) (*users.User, string, error) {
@@ -80,12 +80,12 @@ func RequestResetUserPassword(email string) (*users.User, string, error) {
 	resetToken := tokens.TokenForPasswordReset{Token: token, UserId: user.Id}
 	if err := resetToken.Insert(tx); err != nil {
 		if postgresutil.IsUniqueConstraintErr(err) {
-			return nil, "", errors.New("reset email has already been sent")
+			return nil, "", NewBadRequestError("reset email has already been sent")
 		}
 		return nil, "", err
 	}
 
-	return user, token, tx.Rollback(postgres.GetCtx())
+	return user, token, tx.Commit(postgres.GetCtx())
 }
 
 func ResetUserPassword(token, encryptedPassword string) error {
@@ -98,7 +98,7 @@ func ResetUserPassword(token, encryptedPassword string) error {
 
 	resetToken, err := tokens.GetTokenForPasswordResetByToken(tx, token)
 	if postgresutil.IsNoRowsInResultErr(err) {
-		return errors.New("invalid token")
+		return NewBadRequestError("invalid token")
 	}
 	if err != nil {
 		return err
@@ -118,7 +118,7 @@ func ResetUserPassword(token, encryptedPassword string) error {
 		return err
 	}
 
-	return tx.Rollback(postgres.GetCtx())
+	return tx.Commit(postgres.GetCtx())
 }
 
 func UserEmailVerification(token string) error {
@@ -131,7 +131,7 @@ func UserEmailVerification(token string) error {
 
 	verificationToken, err := tokens.GetTokenForVerificationByToken(tx, token)
 	if postgresutil.IsNoRowsInResultErr(err) {
-		return errors.New("invalid token")
+		return NewBadRequestError("invalid token")
 	}
 	if err != nil {
 		return err
@@ -151,7 +151,7 @@ func UserEmailVerification(token string) error {
 		return err
 	}
 
-	return tx.Rollback(postgres.GetCtx())
+	return tx.Commit(postgres.GetCtx())
 }
 
 func PromoteUserToAdmin(username string) error {
@@ -171,7 +171,7 @@ func PromoteUserToAdmin(username string) error {
 		return err
 	}
 
-	return tx.Rollback(postgres.GetCtx())
+	return tx.Commit(postgres.GetCtx())
 }
 
 func UpdateUserInfo(c echo.Context, username, lastName, firstName string) error {
@@ -194,7 +194,7 @@ func UpdateUserInfo(c echo.Context, username, lastName, firstName string) error 
 		return err
 	}
 
-	return tx.Rollback(postgres.GetCtx())
+	return tx.Commit(postgres.GetCtx())
 }
 
 func UpdateUserPassword(c echo.Context, oldPassword, encryptedNewPassword string) error {
@@ -211,7 +211,7 @@ func UpdateUserPassword(c echo.Context, oldPassword, encryptedNewPassword string
 	}
 
 	if err := bcrypt.CompareHashAndPassword([]byte(user.Password), []byte(oldPassword)); err != nil {
-		return errors.New("bad old password")
+		return NewBadRequestError("bad old password")
 	}
 
 	user.Password = encryptedNewPassword
@@ -219,5 +219,5 @@ func UpdateUserPassword(c echo.Context, oldPassword, encryptedNewPassword string
 		return err
 	}
 
-	return tx.Rollback(postgres.GetCtx())
+	return tx.Commit(postgres.GetCtx())
 }

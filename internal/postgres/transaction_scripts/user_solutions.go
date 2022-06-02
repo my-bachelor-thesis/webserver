@@ -1,7 +1,6 @@
 package transaction_scripts
 
 import (
-	"errors"
 	"github.com/jackc/pgx/v4"
 	"github.com/labstack/echo/v4"
 	"webserver/internal/postgres"
@@ -22,7 +21,7 @@ func UpdateUserSolutionNamePost(c echo.Context) error {
 	}
 
 	if us.Public {
-		return errors.New("can't update this user solution")
+		return NewBadRequestError("can't update this user solution")
 	}
 
 	us.Name = req.Name

@@ -131,7 +131,7 @@ func AddTaskPost(c echo.Context) error {
 		return err
 	}
 
-	return transaction_scripts.AddTask(c, claims, &request)
+	return transaction_scripts.AddTask(claims, &request)
 }
 
 func UnpublishedSavedTaskGet(c echo.Context) error {

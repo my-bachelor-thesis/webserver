@@ -37,7 +37,7 @@ func SendVerificationToken(receiverMail, token string) error {
 
 func SendDenial(receiverMail, taskName, adminName, adminEmail, reason string) error {
 	return send(receiverMail, "Your task has been moved to unpublished",
-		fmt.Sprintf("Your task %q has been moved to the unpublished state by %q(%q). The reason for it is: %q",
+		fmt.Sprintf("Your task %q has been moved to the unpublished state by %q(%s). The reason for it is: %q",
 			taskName, adminName, adminEmail, reason))
 }
 
