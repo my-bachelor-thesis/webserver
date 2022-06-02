@@ -14,6 +14,7 @@ import (
 	"webserver/internal/postgres/rdg/user_solutions"
 	"webserver/internal/postgres/rdg/user_solutions_results"
 	"webserver/internal/postgres/transaction_scripts"
+	"webserver/internal/redis"
 )
 
 type RequestForTesting struct {
@@ -37,6 +38,21 @@ func bindRequestRunAndSaveResult(c echo.Context) (*user_solutions_results.UserSo
 		return nil, nil, err
 	}
 
+	usr := &user_solutions_results.UserSolutionResult{}
+	var saveToRedis bool
+
+	err := redis.Get(req.HashId, usr)
+	if err == nil {
+		fmt.Println("som redis")
+		return usr, req, nil
+	}
+	if err != nil {
+		if !redis.IsErrKeyNotFound(err) {
+			return nil, nil, err
+		}
+		saveToRedis = true
+	}
+
 	postData, err := json.Marshal(req)
 	if err != nil {
 		return nil, nil, err
@@ -54,12 +70,15 @@ func bindRequestRunAndSaveResult(c echo.Context) (*user_solutions_results.UserSo
 		return nil, nil, errors.New(fmt.Sprintf("got status code %d from the Testrer API", resp.StatusCode))
 	}
 
-	usr := &user_solutions_results.UserSolutionResult{}
 	if err = json.NewDecoder(resp.Body).Decode(usr); err != nil {
 		return nil, nil, err
 	}
 
-	return usr, req, nil
+	if saveToRedis {
+		err = redis.Set(req.HashId, usr)
+	}
+
+	return usr, req, err
 }
 
 func OnlyTestPost(c echo.Context) error {

@@ -12,6 +12,7 @@ import (
 	"webserver/internal/handlers"
 	"webserver/internal/jwt"
 	"webserver/internal/postgres"
+	"webserver/internal/redis"
 )
 
 var frontendEndpoints = [...]string{"/", "add-task", "task", "login", "register", "logout", "about",
@@ -43,6 +44,8 @@ func main() {
 	logAndExitIfErr(e, config.LoadConfig())
 	logAndExitIfErr(e, postgres.CreateDbPool())
 	defer postgres.ClosePool()
+	logAndExitIfErr(e, redis.Connect())
+	defer redis.CloseConnection()
 
 	if config.GetInstance().IsProduction {
 		e.Use(middleware.Recover())

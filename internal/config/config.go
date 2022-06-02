@@ -14,6 +14,7 @@ type Config struct {
 	Url          string
 	IsProduction bool
 	PostgresURL  string
+	RedisURL     string
 	JWTSecret    string
 	TesterApiURL string
 	Email        string

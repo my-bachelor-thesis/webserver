@@ -3,6 +3,7 @@ WEBSERVER_PORT=9000
 WEBSERVER_URL="baka.jankelemen.net"
 WEBSERVER_ISINPRODUCTION=false
 WEBSERVER_POSTGRESURL="postgres://jan@localhost:5432/baka"
+WEBSERVER_REDISURL="localhost:6379"
 WEBSERVER_JWTSECRET="abc"
 WEBSERVER_TESTERAPIURL="http://localhost:4000"
 WEBSERVER_EMAIL="my.bachelors.thesis@gmail.com"
