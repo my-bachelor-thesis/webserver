@@ -26,32 +26,32 @@ type TokenForVerification struct {
 	Token  string `json:"token"`
 }
 
-func insertFunc(tableName, token string, userId int) error {
+func insertFunc(tx postgres.PoolInterface, tableName, token string, userId int) error {
 	statement := fmt.Sprintf(`
 	insert into %s (%s)
 	values (%s)`, tableName, allFields, allFieldsPlaceholders)
-	_, err := postgres.GetPool().Exec(postgres.GetCtx(), statement, userId, token)
+	_, err := tx.Exec(postgres.GetCtx(), statement, userId, token)
 	return err
 }
 
-func (tfpr *TokenForPasswordReset) Insert() error {
-	return insertFunc(passwordResetTableName, tfpr.Token, tfpr.UserId)
+func (tfpr *TokenForPasswordReset) Insert(tx postgres.PoolInterface) error {
+	return insertFunc(tx, passwordResetTableName, tfpr.Token, tfpr.UserId)
 }
 
-func (tfr *TokenForVerification) Insert() error {
-	return insertFunc(verificationTableName, tfr.Token, tfr.UserId)
+func (tfr *TokenForVerification) Insert(tx postgres.PoolInterface) error {
+	return insertFunc(tx, verificationTableName, tfr.Token, tfr.UserId)
 }
 
-func deleteFunc(tableName string, userId int) error {
+func deleteFunc(tx postgres.PoolInterface, tableName string, userId int) error {
 	statement := fmt.Sprintf("delete from %s where user_id = $1", tableName)
-	_, err := postgres.GetPool().Exec(postgres.GetCtx(), statement, userId)
+	_, err := tx.Exec(postgres.GetCtx(), statement, userId)
 	return err
 }
 
-func (tfpr *TokenForPasswordReset) Delete() error {
-	return deleteFunc(passwordResetTableName, tfpr.UserId)
+func (tfpr *TokenForPasswordReset) Delete(tx postgres.PoolInterface) error {
+	return deleteFunc(tx, passwordResetTableName, tfpr.UserId)
 }
 
-func (tfr *TokenForVerification) Delete() error {
-	return deleteFunc(verificationTableName, tfr.UserId)
+func (tfr *TokenForVerification) Delete(tx postgres.PoolInterface) error {
+	return deleteFunc(tx, verificationTableName, tfr.UserId)
 }

@@ -1,15 +1,22 @@
-package user_solutions_with_tests
+package transaction_scripts
 
 import (
+	"github.com/jackc/pgx/v4"
 	"webserver/internal/postgres"
 	"webserver/internal/postgres/rdg/tests"
 	"webserver/internal/postgres/rdg/user_solutions"
+	"webserver/internal/postgres/rdg/user_solutions_with_tests"
 )
 
-func GetByLanguage(language string, taskId int, userId int) (*UserSolutionsWithTests, error) {
-	res := &UserSolutionsWithTests{}
+func GetUserSolutionsWithTestsByLanguage(language string, taskId int, userId int) (*user_solutions_with_tests.UserSolutionsWithTests, error) {
+	conn, tx, err := getConnectionFromPoolAndStartTrans(pgx.RepeatableRead)
+	if err != nil {
+		return nil, err
+	}
+	defer tx.Rollback(postgres.GetCtx())
+	defer conn.Release()
 
-	// TODO in transaction
+	res := &user_solutions_with_tests.UserSolutionsWithTests{}
 
 	solutionsStatement := `
 	select 
@@ -20,17 +27,17 @@ func GetByLanguage(language string, taskId int, userId int) (*UserSolutionsWithT
 		coalesce((select ust.test_id from user_solutions_tests ust where ust.user_solution_id = us.id and ust.user_id = $1), 0) as test_id
 	from user_solutions us where us.language = $2 and us.task_id = $3 and (us.user_id = $4 or us.public) order by us.last_modified desc`
 
-	rows, err := postgres.GetPool().Query(postgres.GetCtx(), solutionsStatement, userId, language, taskId, userId)
+	rows, err := tx.Query(postgres.GetCtx(), solutionsStatement, userId, language, taskId, userId)
 	if err != nil {
 		return nil, err
 	}
-	var us Solutions
+	var us user_solutions_with_tests.Solutions
 	var testId int
 	for rows.Next() {
 		if err = rows.Scan(&us.Id, &us.LastModified, &us.Name, &us.Public, &testId); err != nil {
 			return nil, err
 		}
-		res.Solutions = append(res.Solutions, &Solutions{
+		res.Solutions = append(res.Solutions, &user_solutions_with_tests.Solutions{
 			UserSolution: user_solutions.UserSolution{Id: us.Id, LastModified: us.LastModified, Name: us.Name, Public: us.Public},
 			TestId:       testId,
 		})
@@ -45,7 +52,7 @@ func GetByLanguage(language string, taskId int, userId int) (*UserSolutionsWithT
 		public
 	from tests where language = $1 and task_id = $2 and (user_id = $3 or public = true) order by final desc, last_modified desc`
 
-	rows, err = postgres.GetPool().Query(postgres.GetCtx(), testsStatement, language, taskId, userId)
+	rows, err = tx.Query(postgres.GetCtx(), testsStatement, language, taskId, userId)
 	if err != nil {
 		return nil, err
 	}
@@ -59,5 +66,6 @@ func GetByLanguage(language string, taskId int, userId int) (*UserSolutionsWithT
 			Id: test.Id, LastModified: test.LastModified, Final: test.Final, Name: test.Name, Public: test.Public})
 	}
 
+	err = tx.Commit(postgres.GetCtx())
 	return res, err
 }

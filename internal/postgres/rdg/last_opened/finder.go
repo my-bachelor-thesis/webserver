@@ -6,10 +6,10 @@ import (
 	"webserver/internal/postgres"
 )
 
-func GetByUserIdAndTaskId(userId int, taskId int) (*LastOpened, error) {
+func GetByUserIdAndTaskId(tx postgres.PoolInterface, userId int, taskId int) (*LastOpened, error) {
 	statement := fmt.Sprintf("select %s from last_opened where user_id = $1 and task_id = $2", allFields)
 	lo := LastOpened{}
-	err := load(postgres.GetPool().QueryRow(postgres.GetCtx(), statement, userId, taskId), &lo)
+	err := load(tx.QueryRow(postgres.GetCtx(), statement, userId, taskId), &lo)
 	return &lo, err
 }
 

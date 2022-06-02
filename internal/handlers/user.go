@@ -9,12 +9,14 @@ import (
 	"time"
 	"webserver/internal/config"
 	"webserver/internal/email_sender"
+	myjwt "webserver/internal/jwt"
+	"webserver/internal/postgres"
 	"webserver/internal/postgres/rdg/tokens"
 	"webserver/internal/postgres/rdg/users"
+	"webserver/internal/postgres/transaction_scripts"
 	"webserver/pkg/postgresutil"
 )
 
-// Tested
 func LoginPost(c echo.Context) error {
 	var loginCredentials struct {
 		Username string `json:"username" validate:"required"`
@@ -25,7 +27,7 @@ func LoginPost(c echo.Context) error {
 	}
 
 	// get user from DB
-	user, err := users.GetByUsername(loginCredentials.Username)
+	user, err := users.GetByUsername(postgres.GetPool(), loginCredentials.Username)
 	if postgresutil.IsNoRowsInResultErr(err) {
 		return c.JSON(http.StatusBadRequest, "username doesn't exist")
 	}
@@ -42,7 +44,7 @@ func LoginPost(c echo.Context) error {
 	}
 
 	// Set custom claims
-	claims := &JwtCustomClaims{
+	claims := &myjwt.CustomClaims{
 		user.Id,
 		user.IsAdmin,
 		jwt.StandardClaims{
@@ -70,7 +72,6 @@ func LoginPost(c echo.Context) error {
 	return nil
 }
 
-// Tested
 func RegisterPost(c echo.Context) error {
 	user := &users.User{}
 	if err := bindAndValidate(c, user); err != nil {
@@ -84,20 +85,10 @@ func RegisterPost(c echo.Context) error {
 	user.Password = string(encrypted)
 	user.Activated = false
 
-	// start transaction
-	//tx, err := postgres.GetPool().Begin(postgres.GetCtx())
-	//if err != nil {
-	//	return err
-	//}
-	//defer tx.Rollback(postgres.GetCtx())
-
-	if err = user.Insert(); err != nil {
-		return err
-	}
-
 	token := email_sender.GenerateToken()
 	verificationToken := tokens.TokenForVerification{UserId: user.Id, Token: token}
-	if err := verificationToken.Insert(); err != nil {
+
+	if err := transaction_scripts.RegisterUser(user, &verificationToken); err != nil {
 		return err
 	}
 
@@ -106,16 +97,15 @@ func RegisterPost(c echo.Context) error {
 }
 
 func IsValidUsername(c echo.Context) error {
-	_, err := users.GetByUsername(c.Param("username"))
+	_, err := users.GetByUsername(postgres.GetPool(), c.Param("username"))
 	return c.JSON(http.StatusOK, fmt.Sprintf("%t", !postgresutil.IsNoRowsInResultErr(err)))
 }
 
 func IsValidEmail(c echo.Context) error {
-	_, err := users.GetByEmail(c.Param("email"))
+	_, err := users.GetByEmail(postgres.GetPool(), c.Param("email"))
 	return c.JSON(http.StatusOK, fmt.Sprintf("%t", !postgresutil.IsNoRowsInResultErr(err)))
 }
 
-// odskusane
 func UpdateUserInfoPost(c echo.Context) error {
 	var request struct {
 		FirstName string `json:"first_name" validate:"required"`
@@ -126,15 +116,7 @@ func UpdateUserInfoPost(c echo.Context) error {
 		return err
 	}
 
-	user, err := getUserFromJWTCookie(c)
-	if err != nil {
-		return err
-	}
-
-	user.Username = request.Username
-	user.LastName = request.LastName
-	user.FirstName = request.FirstName
-	return user.UpdateFirstLastAndUsername()
+	return transaction_scripts.UpdateUserInfo(c, request.Username, request.LastName, request.FirstName)
 }
 
 func UpdatePasswordPost(c echo.Context) error {
@@ -151,21 +133,12 @@ func UpdatePasswordPost(c echo.Context) error {
 		return c.JSON(http.StatusBadRequest, "passwords don't match")
 	}
 
-	user, err := getUserFromJWTCookie(c)
-	if err != nil {
-		return err
-	}
-
-	if err := bcrypt.CompareHashAndPassword([]byte(user.Password), []byte(request.OldPassword)); err != nil {
-		return c.JSON(http.StatusBadRequest, "bad old password")
-	}
-
 	encrypted, err := bcrypt.GenerateFromPassword([]byte(request.NewPassword), bcrypt.DefaultCost)
 	if err != nil {
 		return err
 	}
-	user.Password = string(encrypted)
-	return user.UpdatePassword()
+
+	return transaction_scripts.UpdateUserPassword(c, request.OldPassword, string(encrypted))
 }
 
 func UpdateEmailPost(c echo.Context) error {
@@ -176,30 +149,14 @@ func UpdateEmailPost(c echo.Context) error {
 		return err
 	}
 
-	user, err := getUserFromJWTCookie(c)
+	user, token, err := transaction_scripts.UpdateUserEmail(c, request.Email)
 	if err != nil {
-		return err
-	}
-
-	if !user.Activated {
-		return c.JSON(http.StatusMethodNotAllowed, "can't change, your previous email wasn't verified")
-	}
-
-	user.Email = request.Email
-	if err := user.UpdateEmailAndDeactivate(); err != nil {
-		return err
-	}
-
-	token := email_sender.GenerateToken()
-	verificationToken := tokens.TokenForVerification{UserId: user.Id, Token: token}
-	if err := verificationToken.Insert(); err != nil {
 		return err
 	}
 
 	return email_sender.SendVerificationToken(user.Email, token)
 }
 
-// Tested
 func RequestResetPasswordPost(c echo.Context) error {
 	var request struct {
 		Email string `json:"registered_email" validate:"required"`
@@ -208,17 +165,8 @@ func RequestResetPasswordPost(c echo.Context) error {
 		return err
 	}
 
-	user, err := users.GetByEmail(request.Email)
+	user, token, err := transaction_scripts.RequestResetUserPassword(request.Email)
 	if err != nil {
-		return err
-	}
-
-	token := email_sender.GenerateToken()
-	resetToken := tokens.TokenForPasswordReset{Token: token, UserId: user.Id}
-	if err := resetToken.Insert(); err != nil {
-		if postgresutil.IsUniqueConstraintErr(err) {
-			return c.JSON(http.StatusMethodNotAllowed, "reset email has already been sent")
-		}
 		return err
 	}
 
@@ -239,30 +187,12 @@ func ResetPasswordPost(c echo.Context) error {
 		return c.JSON(http.StatusBadRequest, "passwords don't match")
 	}
 
-	resetToken, err := tokens.GetTokenForPasswordResetByToken(request.Token)
-	if postgresutil.IsNoRowsInResultErr(err) {
-		return c.JSON(http.StatusMethodNotAllowed, "invalid token")
-	}
-	if err != nil {
-		return err
-	}
-
 	encrypted, err := bcrypt.GenerateFromPassword([]byte(request.Password), bcrypt.DefaultCost)
 	if err != nil {
 		return err
 	}
 
-	user, err := users.GetById(resetToken.UserId)
-	if err != nil {
-		return err
-	}
-	user.Password = string(encrypted)
-
-	if err := user.UpdatePassword(); err != nil {
-		return err
-	}
-
-	return resetToken.Delete()
+	return transaction_scripts.ResetUserPassword(request.Token, string(encrypted))
 }
 
 func EmailVerificationPost(c echo.Context) error {
@@ -273,30 +203,10 @@ func EmailVerificationPost(c echo.Context) error {
 		return err
 	}
 
-	verificationToken, err := tokens.GetTokenForVerificationByToken(request.Token)
-	if postgresutil.IsNoRowsInResultErr(err) {
-		return c.JSON(http.StatusMethodNotAllowed, "invalid token")
-	}
-	if err != nil {
-		return err
-	}
-
-	user, err := users.GetById(verificationToken.UserId)
-	if err != nil {
-		return err
-	}
-
-	// TODO: in trans
-
-	user.Activated = true
-	if err := user.UpdateActivatedStatus(); err != nil {
-		return err
-	}
-
-	return verificationToken.Delete()
+	return transaction_scripts.UserEmailVerification(request.Token)
 }
 
-func PromoteToAdmin(c echo.Context) error {
+func PromoteToAdminPost(c echo.Context) error {
 	var request struct {
 		Username string `json:"username_to_promote" validate:"required"`
 	}
@@ -304,7 +214,7 @@ func PromoteToAdmin(c echo.Context) error {
 		return err
 	}
 
-	claims, err := getClaimsFromRequest(c)
+	claims, err := myjwt.GetClaimsFromRequest(c)
 	if err != nil {
 		return err
 	}
@@ -313,10 +223,5 @@ func PromoteToAdmin(c echo.Context) error {
 		return c.JSON(http.StatusForbidden, "not a admin")
 	}
 
-	user, err := users.GetByUsername(request.Username)
-	if err != nil {
-		return err
-	}
-
-	return user.PromoteToAdmin()
+	return transaction_scripts.PromoteUserToAdmin(request.Username)
 }

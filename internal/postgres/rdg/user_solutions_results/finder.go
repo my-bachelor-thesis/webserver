@@ -6,10 +6,10 @@ import (
 	"webserver/internal/postgres"
 )
 
-func GetByUserIdUserSolutionIdAndTestId(userId, userSolutionId, testId int) (*UserSolutionResult, error) {
+func GetByUserIdUserSolutionIdAndTestId(tx postgres.PoolInterface, userId, userSolutionId, testId int) (*UserSolutionResult, error) {
 	statement := fmt.Sprintf("select %s from %s where user_id = $1 and user_solution_id = $2 and test_id = $3", allFields, tableName)
 	usr := UserSolutionResult{}
-	err := load(postgres.GetPool().QueryRow(postgres.GetCtx(), statement, userId, userSolutionId, testId), &usr)
+	err := load(tx.QueryRow(postgres.GetCtx(), statement, userId, userSolutionId, testId), &usr)
 	return &usr, err
 }
 

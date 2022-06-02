@@ -29,11 +29,11 @@ type UserSolutionResult struct {
 	InfoForStatistic
 }
 
-func (usr *UserSolutionResult) Insert() error {
+func (usr *UserSolutionResult) Insert(tx postgres.PoolInterface) error {
 	statement := fmt.Sprintf(`
 	insert into %s (%s)
 	values (%s)`, tableName, allFields, postgresutil.GeneratePlaceholders(allFields))
-	_, err := postgres.GetPool().Exec(postgres.GetCtx(), statement, getInsertFields(usr)...)
+	_, err := tx.Exec(postgres.GetCtx(), statement, getInsertFields(usr)...)
 	return err
 }
 

@@ -1,9 +1,18 @@
-package task_with_solutions_and_tests
+package transaction_scripts
 
-import "webserver/internal/postgres"
+import (
+	"github.com/jackc/pgx/v4"
+	"webserver/internal/postgres"
+	"webserver/internal/postgres/rdg/task_with_solutions_and_tests"
+)
 
-func GetByTaskId(taskId, authorId int) (*TaskWithSolutionsAndTests, error) {
-	// TODO: in transaction
+func GetTaskWithSolutionsAndTasksByTaskId(taskId, authorId int) (*task_with_solutions_and_tests.TaskWithSolutionsAndTests, error) {
+	conn, tx, err := getConnectionFromPoolAndStartTrans(pgx.RepeatableRead)
+	if err != nil {
+		return nil, err
+	}
+	defer tx.Rollback(postgres.GetCtx())
+	defer conn.Release()
 
 	taskStatement := `
 	select
@@ -11,8 +20,8 @@ func GetByTaskId(taskId, authorId int) (*TaskWithSolutionsAndTests, error) {
 		t.difficulty,
 		t.text
 	from tasks t where id = $1 and author_id = $2`
-	task := TaskWithSolutionsAndTests{}
-	if err := postgres.GetPool().QueryRow(postgres.GetCtx(), taskStatement, taskId, authorId).Scan(&task.Title, &task.Difficulty,
+	task := task_with_solutions_and_tests.TaskWithSolutionsAndTests{}
+	if err := tx.QueryRow(postgres.GetCtx(), taskStatement, taskId, authorId).Scan(&task.Title, &task.Difficulty,
 		&task.Description); err != nil {
 		return nil, err
 	}
@@ -26,14 +35,14 @@ func GetByTaskId(taskId, authorId int) (*TaskWithSolutionsAndTests, error) {
 	from tests t
 	where t.task_id = $1 and (t.final = true or t.public = true)`
 
-	rows, err := postgres.GetPool().Query(postgres.GetCtx(), testsStatement, taskId)
+	rows, err := tx.Query(postgres.GetCtx(), testsStatement, taskId)
 	if err != nil {
 		return nil, err
 	}
 
 	var final bool
 	for rows.Next() {
-		test := &NameAndCode{}
+		test := &task_with_solutions_and_tests.NameAndCode{}
 		if err = rows.Scan(&test.Name, &test.Code, &test.Language, &final); err != nil {
 			return nil, err
 		}
@@ -52,18 +61,19 @@ func GetByTaskId(taskId, authorId int) (*TaskWithSolutionsAndTests, error) {
 	from user_solutions us
 	where us.task_id = $1 and us.public = true`
 
-	rows, err = postgres.GetPool().Query(postgres.GetCtx(), solutionStatement, taskId)
+	rows, err = tx.Query(postgres.GetCtx(), solutionStatement, taskId)
 	if err != nil {
 		return nil, err
 	}
 
 	for rows.Next() {
-		solution := &NameAndCode{}
+		solution := &task_with_solutions_and_tests.NameAndCode{}
 		if err = rows.Scan(&solution.Name, &solution.Code, &solution.Language); err != nil {
 			return nil, err
 		}
 		task.PublicSolutions = append(task.PublicSolutions, solution)
 	}
 
-	return &task, nil
+	err = tx.Commit(postgres.GetCtx())
+	return &task, err
 }

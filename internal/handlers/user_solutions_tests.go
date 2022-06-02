@@ -2,6 +2,8 @@ package handlers
 
 import (
 	"github.com/labstack/echo/v4"
+	"webserver/internal/jwt"
+	"webserver/internal/postgres"
 	"webserver/internal/postgres/rdg/user_solutions_tests"
 )
 
@@ -13,11 +15,11 @@ func UpdateTestIdForUserSolutionPost(c echo.Context) error {
 	if err := bindAndValidate(c, &request); err != nil {
 		return err
 	}
-	claims, err := getClaimsFromRequest(c)
+	claims, err := jwt.GetClaimsFromRequest(c)
 	if err != nil {
 		return err
 	}
 	ust := user_solutions_tests.UserSolutionTest{TestId: request.TestId, UserSolutionId: request.UserSolutionId,
 		UserId: claims.UserId}
-	return ust.Upsert()
+	return ust.Upsert(postgres.GetPool())
 }

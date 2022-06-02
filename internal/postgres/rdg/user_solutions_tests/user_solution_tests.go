@@ -17,26 +17,26 @@ type UserSolutionTest struct {
 	UserId         int `json:"user_id"`
 }
 
-func (ust *UserSolutionTest) Insert() error {
+func (ust *UserSolutionTest) Insert(tx postgres.PoolInterface) error {
 	statement := fmt.Sprintf(`
 	insert into %s (%s)
 	values (%s)`, tableName, allFields, postgresutil.GeneratePlaceholders(allFields))
-	_, err := postgres.GetPool().Exec(postgres.GetCtx(), statement, getInsertFields(ust)...)
+	_, err := tx.Exec(postgres.GetCtx(), statement, getInsertFields(ust)...)
 	return err
 }
 
-func (ust *UserSolutionTest) UpdateTestId() error {
+func (ust *UserSolutionTest) UpdateTestId(tx postgres.PoolInterface) error {
 	statement := fmt.Sprintf("update %s set test_id = $1 where user_id = $2 and user_solution_id = $3", tableName)
-	_, err := postgres.GetPool().Exec(postgres.GetCtx(), statement, ust.TestId, ust.UserId, ust.UserSolutionId)
+	_, err := tx.Exec(postgres.GetCtx(), statement, ust.TestId, ust.UserId, ust.UserSolutionId)
 	return err
 }
 
-func (ust *UserSolutionTest) Upsert() error {
-	_, err := GetByUserIdAndUserSolutionId(ust.UserId, ust.UserSolutionId)
+func (ust *UserSolutionTest) Upsert(tx postgres.PoolInterface) error {
+	_, err := GetByUserIdAndUserSolutionId(tx, ust.UserId, ust.UserSolutionId)
 	if postgresutil.IsNoRowsInResultErr(err) {
-		return ust.Insert()
+		return ust.Insert(tx)
 	}
-	return ust.UpdateTestId()
+	return ust.UpdateTestId(tx)
 }
 
 func getInsertFields(ust *UserSolutionTest) (res []interface{}) {

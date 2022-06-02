@@ -29,21 +29,21 @@ type UserSolution struct {
 	Code         string `json:"code"`
 }
 
-func (us *UserSolution) Insert() error {
+func (us *UserSolution) Insert(tx postgres.PoolInterface) error {
 	statement := fmt.Sprintf(`
 	insert into %s (%s)
 	values (%s)
 	returning id, to_char(last_modified, 'DD.MM.YY, HH24:MI:SS')`, tableName, allFieldsWithoutId, placeHoldersWithTimestampAndWithoutId)
-	return postgres.GetPool().QueryRow(postgres.GetCtx(), statement, getInsertFields(us)...).Scan(&us.Id, &us.LastModified)
+	return tx.QueryRow(postgres.GetCtx(), statement, getInsertFields(us)...).Scan(&us.Id, &us.LastModified)
 }
 
-func (us *UserSolution) UpdateName() error {
+func (us *UserSolution) UpdateName(tx postgres.PoolInterface) error {
 	statement := fmt.Sprintf("update %s set name = $1 where id = $2", tableName)
-	_, err := postgres.GetPool().Exec(postgres.GetCtx(), statement, us.Name, us.Id)
+	_, err := tx.Exec(postgres.GetCtx(), statement, us.Name, us.Id)
 	return err
 }
 
-func InsertMany(us []*UserSolution) error {
+func InsertMany(tx postgres.PoolInterface, us []*UserSolution) error {
 	statement := fmt.Sprintf(`
 	insert into %s (%s)
 	values `, tableName, allFieldsWithoutId)
@@ -58,7 +58,7 @@ func InsertMany(us []*UserSolution) error {
 		vals = append(vals, getInsertFields(row)...)
 	}
 	statement = statement[0 : len(statement)-1]
-	_, err := postgres.GetPool().Exec(postgres.GetCtx(), statement, vals...)
+	_, err := tx.Exec(postgres.GetCtx(), statement, vals...)
 	return err
 }
 

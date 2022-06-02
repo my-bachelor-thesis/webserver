@@ -6,10 +6,10 @@ import (
 	"webserver/internal/postgres"
 )
 
-func GetById(id int) (*UserSolution, error) {
+func GetById(tx postgres.PoolInterface, id int) (*UserSolution, error) {
 	statement := fmt.Sprintf("select %s from %s where id = $1", allFieldReplacedTimestamp, tableName)
 	us := UserSolution{}
-	err := load(postgres.GetPool().QueryRow(postgres.GetCtx(), statement, id), &us)
+	err := load(tx.QueryRow(postgres.GetCtx(), statement, id), &us)
 	return &us, err
 }
 

@@ -7,13 +7,13 @@ import (
 	"webserver/pkg/postgresutil"
 )
 
-func GetById(id int) (*Test, error) {
+func GetById(tx postgres.PoolInterface, id int) (*Test, error) {
 	if id == 0 {
 		return nil, postgresutil.ErrNoRowsInResult
 	}
 	statement := fmt.Sprintf("select %s from tests where id = $1", allFieldReplacedTimestamp)
 	test := Test{}
-	err := load(postgres.GetPool().QueryRow(postgres.GetCtx(), statement, id), &test)
+	err := load(tx.QueryRow(postgres.GetCtx(), statement, id), &test)
 	return &test, err
 }
 

@@ -8,9 +8,12 @@ import (
 	"github.com/labstack/echo/v4"
 	"net/http"
 	"webserver/internal/config"
+	"webserver/internal/jwt"
+	"webserver/internal/postgres"
 	"webserver/internal/postgres/rdg/tests"
 	"webserver/internal/postgres/rdg/user_solutions"
 	"webserver/internal/postgres/rdg/user_solutions_results"
+	"webserver/internal/postgres/transaction_scripts"
 )
 
 type RequestForTesting struct {
@@ -22,20 +25,10 @@ type RequestForTesting struct {
 	HashId     string `json:"hash_id" validate:"required"`
 }
 
-type InsertedSolution struct {
-	Id           int    `json:"id"`            // id of a solution that was inserted into the db
-	LastModified string `json:"last_modified"` // last_modified of a solution that was inserted into the db
-}
-
-type InsertedTest struct {
-	Id           int    `json:"id"`            // id of a test that was inserted into the db
-	LastModified string `json:"last_modified"` // last_modified of a test that was inserted into the db
-}
-
 type ResultFromTesting struct {
 	Result           *user_solutions_results.UserSolutionResult `json:"result"`
-	InsertedTest     *InsertedTest                              `json:"inserted_test"`
-	InsertedSolution *InsertedSolution                            `json:"inserted_solution"`
+	InsertedTest     *transaction_scripts.InsertedTest          `json:"inserted_test"`
+	InsertedSolution *transaction_scripts.InsertedSolution      `json:"inserted_solution"`
 }
 
 func bindRequestRunAndSaveResult(c echo.Context) (*user_solutions_results.UserSolutionResult, *RequestForTesting, error) {
@@ -75,12 +68,16 @@ func OnlyTestPost(c echo.Context) error {
 		return err
 	}
 
-	claims, err := getClaimsFromRequest(c)
+	claims, err := jwt.GetClaimsFromRequest(c)
 	if err != nil {
 		return err
 	}
 
-	if err := insertUserSolutionResult(usr, claims.UserId, req.TestId, req.SolutionId); err != nil {
+	usr.UserId = claims.UserId
+	usr.TestId = req.TestId
+	usr.UserSolutionId = req.SolutionId
+
+	if err := usr.Insert(postgres.GetPool()); err != nil {
 		return err
 	}
 
@@ -94,21 +91,23 @@ func TestAndSaveSolutionPost(c echo.Context) error {
 		return err
 	}
 
-	claims, err := getClaimsFromRequest(c)
+	claims, err := jwt.GetClaimsFromRequest(c)
 	if err != nil {
 		return err
 	}
 
-	insertedSolution, err := insertSolution(c, req, claims.UserId)
+	us := user_solutions.UserSolution{}
+	fillUserSolution(c, &us, req, claims.UserId)
+
+	usr.UserId = claims.UserId
+	usr.TestId = req.TestId
+
+	inserted, err := transaction_scripts.EditorSaveSolution(&us, usr)
 	if err != nil {
 		return err
 	}
 
-	if err := insertUserSolutionResult(usr, claims.UserId, req.TestId, insertedSolution.Id); err != nil {
-		return err
-	}
-
-	out := &ResultFromTesting{InsertedSolution: insertedSolution, Result: usr}
+	out := &ResultFromTesting{InsertedSolution: inserted, Result: usr}
 	return c.JSON(http.StatusOK, out)
 }
 
@@ -118,21 +117,23 @@ func TestAndSaveTestPost(c echo.Context) error {
 		return err
 	}
 
-	claims, err := getClaimsFromRequest(c)
+	claims, err := jwt.GetClaimsFromRequest(c)
 	if err != nil {
 		return err
 	}
 
-	insertedTest, err := insertTest(c, req, claims.UserId)
+	test := tests.Test{}
+	fillTest(c, &test, req, claims.UserId)
+
+	usr.UserId = claims.UserId
+	usr.UserSolutionId = req.SolutionId
+
+	inserted, err := transaction_scripts.EditorSaveTest(&test, usr)
 	if err != nil {
 		return err
 	}
 
-	if err := insertUserSolutionResult(usr, claims.UserId, insertedTest.Id, req.SolutionId); err != nil {
-		return err
-	}
-
-	out := &ResultFromTesting{InsertedTest: insertedTest, Result: usr}
+	out := &ResultFromTesting{InsertedTest: inserted, Result: usr}
 	return c.JSON(http.StatusOK, out)
 }
 
@@ -142,50 +143,26 @@ func TestAndSaveBothPost(c echo.Context) error {
 		return err
 	}
 
-	claims, err := getClaimsFromRequest(c)
+	claims, err := jwt.GetClaimsFromRequest(c)
 	if err != nil {
 		return err
 	}
 
-	insertedSolution, err := insertSolution(c, req, claims.UserId)
-	if err != nil {
-		return err
-	}
+	test := tests.Test{}
+	fillTest(c, &test, req, claims.UserId)
 
-	insertedTest, err := insertTest(c, req, claims.UserId)
-	if err != nil {
-		return err
-	}
+	us := user_solutions.UserSolution{}
+	fillUserSolution(c, &us, req, claims.UserId)
 
-	if err := insertUserSolutionResult(usr, claims.UserId, insertedTest.Id, insertedSolution.Id); err != nil {
+	usr.UserId = claims.UserId
+
+	insertedSolution, insertedTest, err := transaction_scripts.EditorSaveTestAndSolution(&test, &us, usr)
+	if err != nil {
 		return err
 	}
 
 	out := &ResultFromTesting{InsertedTest: insertedTest, InsertedSolution: insertedSolution, Result: usr}
 	return c.JSON(http.StatusOK, out)
-}
-
-func insertTest(c echo.Context, req *RequestForTesting, userId int) (*InsertedTest, error) {
-	test := &tests.Test{}
-	fillTest(c, test, req, userId)
-
-	err := test.Insert()
-	return &InsertedTest{Id: test.Id, LastModified: test.LastModified}, err
-}
-
-func insertSolution(c echo.Context, req *RequestForTesting, userId int) (*InsertedSolution, error) {
-	us := user_solutions.UserSolution{}
-	fillUserSolution(c, &us, req, userId)
-
-	err := us.Insert()
-	return &InsertedSolution{Id: us.Id, LastModified: us.LastModified}, err
-}
-
-func insertUserSolutionResult(usr *user_solutions_results.UserSolutionResult, userId, testId, solutionId int) error {
-	usr.UserId = userId
-	usr.TestId = testId
-	usr.UserSolutionId = solutionId
-	return usr.Insert()
 }
 
 func fillUserSolution(c echo.Context, us *user_solutions.UserSolution, req *RequestForTesting, userId int) {

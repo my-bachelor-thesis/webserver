@@ -8,22 +8,22 @@ import (
 	"webserver/pkg/postgresutil"
 )
 
-func GetById(id int) (*User, error) {
-	return getBySomething("id", strconv.Itoa(id))
+func GetById(tx postgres.PoolInterface, id int) (*User, error) {
+	return getBySomething(tx, "id", strconv.Itoa(id))
 }
 
-func GetByUsername(username string) (*User, error) {
-	return getBySomething("username", username)
+func GetByUsername(tx postgres.PoolInterface, username string) (*User, error) {
+	return getBySomething(tx, "username", username)
 }
 
-func GetByEmail(email string) (*User, error) {
-	return getBySomething("email", email)
+func GetByEmail(tx postgres.PoolInterface, email string) (*User, error) {
+	return getBySomething(tx, "email", email)
 }
 
-func getBySomething(fieldName, fieldValue string) (*User, error) {
+func getBySomething(tx postgres.PoolInterface, fieldName, fieldValue string) (*User, error) {
 	statement := fmt.Sprintf("select %s from users where %s = $1", allFields, fieldName)
 	user := User{}
-	err := load(postgres.GetPool().QueryRow(postgres.GetCtx(), statement, fieldValue), &user)
+	err := load(tx.QueryRow(postgres.GetCtx(), statement, fieldValue), &user)
 	if err == nil && user.Id == 0 {
 		err = postgresutil.ErrNoRowsInResult
 	}

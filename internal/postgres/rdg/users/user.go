@@ -22,42 +22,42 @@ type User struct {
 	Activated bool   `json:"activated" form:"activated"`
 }
 
-func (user *User) Insert() error {
+func (user *User) Insert(tx postgres.PoolInterface) error {
 	statement := fmt.Sprintf(`
 	insert into users (%s)
 	values (%s)
 	returning id`, allFieldsWithoutId, postgresutil.GeneratePlaceholders(allFieldsWithoutId))
-	return postgres.GetPool().QueryRow(postgres.GetCtx(), statement, user.IsAdmin, user.FirstName, user.LastName,
+	return tx.QueryRow(postgres.GetCtx(), statement, user.IsAdmin, user.FirstName, user.LastName,
 		user.Username, user.Email, user.Password, user.Activated).Scan(&user.Id)
 }
 
-func (user *User) UpdateFirstLastAndUsername() error {
+func (user *User) UpdateFirstLastAndUsername(tx postgres.PoolInterface) error {
 	statement := "update users set first_name = $1, last_name = $2, username = $3 where id = $4"
-	_, err := postgres.GetPool().Exec(postgres.GetCtx(), statement, user.FirstName, user.LastName, user.Username, user.Id)
+	_, err := tx.Exec(postgres.GetCtx(), statement, user.FirstName, user.LastName, user.Username, user.Id)
 	return err
 }
 
-func (user *User) UpdateEmailAndDeactivate() error {
+func (user *User) UpdateEmailAndDeactivate(tx postgres.PoolInterface) error {
 	statement := "update users set email = $1, activated = false where id = $2"
-	_, err := postgres.GetPool().Exec(postgres.GetCtx(), statement, user.Email, user.Id)
+	_, err := tx.Exec(postgres.GetCtx(), statement, user.Email, user.Id)
 	user.Activated = false
 	return err
 }
 
-func (user *User) UpdatePassword() error {
+func (user *User) UpdatePassword(tx postgres.PoolInterface) error {
 	statement := "update users set password = $1 where id = $2"
-	_, err := postgres.GetPool().Exec(postgres.GetCtx(), statement, user.Password, user.Id)
+	_, err := tx.Exec(postgres.GetCtx(), statement, user.Password, user.Id)
 	return err
 }
 
-func (user *User) UpdateActivatedStatus() error {
+func (user *User) UpdateActivatedStatus(tx postgres.PoolInterface) error {
 	statement := "update users set activated = $1 where id = $2"
-	_, err := postgres.GetPool().Exec(postgres.GetCtx(), statement, user.Activated, user.Id)
+	_, err := tx.Exec(postgres.GetCtx(), statement, user.Activated, user.Id)
 	return err
 }
 
-func (user *User) PromoteToAdmin() error {
+func (user *User) PromoteToAdmin(tx postgres.PoolInterface) error {
 	statement := "update users set is_admin = true where id = $1"
-	_, err := postgres.GetPool().Exec(postgres.GetCtx(), statement, user.Id)
+	_, err := tx.Exec(postgres.GetCtx(), statement, user.Id)
 	return err
 }

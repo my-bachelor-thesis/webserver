@@ -2,6 +2,8 @@ package handlers
 
 import (
 	"github.com/labstack/echo/v4"
+	"webserver/internal/jwt"
+	"webserver/internal/postgres"
 	"webserver/internal/postgres/rdg/users"
 )
 
@@ -30,12 +32,12 @@ func bindAndFindWithUserId[T any](c echo.Context, getByIdFunc func(int, int) (T,
 	return &req, obj, err
 }
 
-func getUserFromJWTCookie(c echo.Context) (*users.User, error) {
-	claims, err := getClaimsFromRequest(c)
+func getUserFromJWTCookie(tx postgres.PoolInterface, c echo.Context) (*users.User, error) {
+	claims, err := jwt.GetClaimsFromRequest(c)
 	if err != nil {
 		return nil, err
 	}
-	return users.GetById(claims.UserId)
+	return users.GetById(tx, claims.UserId)
 }
 
 func bindAndValidate[T any](c echo.Context, request T) error {

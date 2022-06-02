@@ -29,21 +29,21 @@ type Test struct {
 	Code         string `json:"code"`
 }
 
-func (test *Test) Insert() error {
+func (test *Test) Insert(tx postgres.PoolInterface) error {
 	statement := fmt.Sprintf(`
 	insert into tests (%s)
 	values (%s)
 	returning id, to_char(last_modified, 'DD.MM.YY, HH24:MI:SS')`, allFieldsWithoutId, placeHoldersWithTimestampAndWithoutId)
-	return postgres.GetPool().QueryRow(postgres.GetCtx(), statement, getInsertFields(test)...).Scan(&test.Id, &test.LastModified)
+	return tx.QueryRow(postgres.GetCtx(), statement, getInsertFields(test)...).Scan(&test.Id, &test.LastModified)
 }
 
-func (test *Test) UpdateName() error {
+func (test *Test) UpdateName(tx postgres.PoolInterface) error {
 	statement := "update tests set name = $1 where id = $2"
-	_, err := postgres.GetPool().Exec(postgres.GetCtx(), statement, test.Name, test.Id)
+	_, err := tx.Exec(postgres.GetCtx(), statement, test.Name, test.Id)
 	return err
 }
 
-func InsertMany(tests []*Test) error {
+func InsertMany(tx postgres.PoolInterface, tests []*Test) error {
 	statement := fmt.Sprintf(`
 	insert into tests (%s)
 	values `, allFieldsWithoutId)
@@ -58,7 +58,7 @@ func InsertMany(tests []*Test) error {
 		vals = append(vals, getInsertFields(row)...)
 	}
 	statement = statement[0 : len(statement)-1]
-	_, err := postgres.GetPool().Exec(postgres.GetCtx(), statement, vals...)
+	_, err := tx.Exec(postgres.GetCtx(), statement, vals...)
 	return err
 }
 

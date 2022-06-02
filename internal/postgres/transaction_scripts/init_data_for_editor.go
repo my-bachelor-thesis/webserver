@@ -1,11 +1,18 @@
-package initial_data_for_editor
+package transaction_scripts
 
 import (
+	"github.com/jackc/pgx/v4"
 	"webserver/internal/postgres"
+	"webserver/internal/postgres/rdg/initial_data_for_editor"
 )
 
-func GetByTaskId(taskId int) (*InitialDataForEditor, error) {
-	// TODO: in transaction
+func GetInitDataForEditorByTaskId(taskId int) (*initial_data_for_editor.InitialDataForEditor, error) {
+	conn, tx, err := getConnectionFromPoolAndStartTrans(pgx.RepeatableRead)
+	if err != nil {
+		return nil, err
+	}
+	defer tx.Rollback(postgres.GetCtx())
+	defer conn.Release()
 
 	statement := `
 	select
@@ -17,8 +24,8 @@ func GetByTaskId(taskId int) (*InitialDataForEditor, error) {
 		(select u.first_name || ' ' || u.last_name from users u where u.id = t.author_id) author,
 		(select u.first_name || ' ' || u.last_name from users u where u.id = t.approver_id) approver
 	from tasks t where id = $1`
-	initData := InitialDataForEditor{}
-	if err := postgres.GetPool().QueryRow(postgres.GetCtx(), statement, taskId).Scan(&initData.Title, &initData.Difficulty,
+	initData := initial_data_for_editor.InitialDataForEditor{}
+	if err := tx.QueryRow(postgres.GetCtx(), statement, taskId).Scan(&initData.Title, &initData.Difficulty,
 		&initData.Text, &initData.AuthorId, &initData.AddedOn, &initData.Author, &initData.Approver); err != nil {
 		return nil, err
 	}
@@ -27,7 +34,7 @@ func GetByTaskId(taskId int) (*InitialDataForEditor, error) {
 	select
 		language
 	from tests where final = true and task_id = $1`
-	rows, err := postgres.GetPool().Query(postgres.GetCtx(), languagesStatement, taskId)
+	rows, err := tx.Query(postgres.GetCtx(), languagesStatement, taskId)
 	if err != nil {
 		return nil, err
 	}
@@ -38,6 +45,8 @@ func GetByTaskId(taskId int) (*InitialDataForEditor, error) {
 		}
 		initData.Languages = append(initData.Languages, row)
 	}
+
+	err = tx.Commit(postgres.GetCtx())
 
 	return &initData, err
 }

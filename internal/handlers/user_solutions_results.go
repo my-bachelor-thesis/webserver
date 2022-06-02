@@ -4,6 +4,8 @@ import (
 	"github.com/labstack/echo/v4"
 	"net/http"
 	"strconv"
+	"webserver/internal/jwt"
+	"webserver/internal/postgres"
 	"webserver/internal/postgres/rdg/user_solutions_results"
 	"webserver/pkg/postgresutil"
 )
@@ -19,12 +21,12 @@ func UserSolutionsResultsGet(c echo.Context) error {
 		return err
 	}
 
-	claims, err := getClaimsFromRequest(c)
+	claims, err := jwt.GetClaimsFromRequest(c)
 	if err != nil {
 		return err
 	}
 
-	usr, err := user_solutions_results.GetByUserIdUserSolutionIdAndTestId(claims.UserId, userSolutionId, testId)
+	usr, err := user_solutions_results.GetByUserIdUserSolutionIdAndTestId(postgres.GetPool(), claims.UserId, userSolutionId, testId)
 	if err != nil {
 		if postgresutil.IsNoRowsInResultErr(err) {
 			return c.JSON(http.StatusOK, "not found")
