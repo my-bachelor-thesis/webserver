@@ -52,12 +52,16 @@ values (1, 1, 'Fizz buzz', 'easy',
         'Write a function named "TestFizzBuzz1_000_000", which will return an array with the first 1 000 000 elements of this sequence.');
 
 insert into tests (last_modified, final, name, public, user_id, task_id, language, code)
-values (CURRENT_TIMESTAMP, true, 'final test', true, 1, 1, 'go', 'package main
+values (CURRENT_TIMESTAMP, true, 'final', true, 1, 1, 'go', 'package main
 
 import "testing"
 
 func TestFizzBuzz1_000_000(t *testing.T) {
   res := FizzBuzz1_000_000()
+
+  if len(res) != 1_000_000 {
+    t.Errorf("got an array with length %d, want an array with length 1 000 000", len(res))
+  }
 
   tests := []struct {
     name      string
@@ -77,9 +81,34 @@ func TestFizzBuzz1_000_000(t *testing.T) {
   }
 }');
 
+insert into tests (last_modified, final, name, public, user_id, task_id, language, code)
+values (CURRENT_TIMESTAMP, true, 'final', true, 1, 1, 'javascript', 'let assert = require("assert")
+
+describe("Final test", function () {
+  let got = FizzBuzz1_000_000()
+
+  it("Test length", function () {
+    assert.equal(got.length, 1_000_000)
+  })
+
+  it("Test indexes", function () {
+    assert.equal(got[14], "fizzbuzz")
+    assert.equal(got[100_000], "100001")
+    assert.equal(got[999_999], "buzz")
+  })
+})');
+
 insert into user_solutions (user_id, task_id, last_modified, language, name, public, code)
-values (1, 1, CURRENT_TIMESTAMP, 'go', 'public solution', true, 'func FizzBuzz1_000_000() []int {
+values (1, 1, CURRENT_TIMESTAMP, 'go', 'public solution', true, 'package main
+
+func FizzBuzz1_000_000() []string {
+  // write your solution here
   return nil
+}');
+
+insert into user_solutions (user_id, task_id, last_modified, language, name, public, code)
+values (1, 1, CURRENT_TIMESTAMP, 'javascript', 'public solution', true, 'function FizzBuzz1_000_000() {
+  return []
 }');
 
 -- insert into user_solutions (user_id, task_id, last_modified, language, name, public, code)
@@ -113,7 +142,7 @@ values (1, 1, 'Get first 1000 primes', 'easy',
         'Rewrite already an existing solution in Go into Python');
 
 insert into tests (last_modified, final, name, public, user_id, task_id, language, code)
-values (CURRENT_TIMESTAMP, true, 'final test', true, 1, 2, 'go', 'package main
+values (CURRENT_TIMESTAMP, true, 'final', true, 1, 2, 'go', 'package main
 
 import "testing"
 
@@ -143,7 +172,7 @@ func TestPrimes(t *testing.T) {
 }');
 
 insert into tests (last_modified, final, name, public, user_id, task_id, language, code)
-values (CURRENT_TIMESTAMP, true, 'final test', true, 1, 2, 'python', 'def test_primes():
+values (CURRENT_TIMESTAMP, true, 'final', true, 1, 2, 'python', 'def test_primes():
   got = primes()
   assert len(got) == 1000
   assert got[45] == 197
@@ -189,7 +218,7 @@ values (1, 1, 'Sum of two', 'easy', true, CURRENT_TIMESTAMP,
         'Return indexes of two numbers from the array which sum to the second argument. If such numbers don''t exist, return an empty array');
 
 insert into tests (last_modified, final, name, public, user_id, task_id, language, code)
-values (CURRENT_TIMESTAMP, true, 'final test', true, 1, 3, 'go', 'package main
+values (CURRENT_TIMESTAMP, true, 'final', true, 1, 3, 'go', 'package main
 
 import (
   "reflect"
@@ -215,12 +244,33 @@ func TestSum(t *testing.T) {
   }
 }');
 
+insert into tests (last_modified, final, name, public, user_id, task_id, language, code)
+values (CURRENT_TIMESTAMP, true, 'final', true, 1, 3, 'cpp', '#include <vector>
+
+using namespace std;
+
+TEST_CASE("Basic tests") {
+  REQUIRE(Sum({2, 7, 11, 15}, 9) == vector<int>{0, 1});
+  REQUIRE(Sum({3, 2, 4}, 6) == vector<int>{1, 2});
+  REQUIRE(Sum({2, 7, 11, 15}, 90) == vector<int>{});
+}');
+
 insert into user_solutions (user_id, task_id, last_modified, language, name, public, code)
 values (1, 3, CURRENT_TIMESTAMP, 'go', 'public solution', true, 'package main
 
 func Sum(arr []int, sum int) []int {
   // write your solution here
   return nil
+}');
+
+insert into user_solutions (user_id, task_id, last_modified, language, name, public, code)
+values (1, 3, CURRENT_TIMESTAMP, 'cpp', 'public solution', true, '#include <vector>
+
+using namespace std;
+
+vector<int> Sum(vector<int> arr, int sum) {
+  // write your solution here
+  return {};
 }');
 
 -- task Reverse Integer
@@ -231,30 +281,30 @@ values (1, 1, 'Reverse integer', 'medium', true, CURRENT_TIMESTAMP,
         'For example:<br>-123 -> -321<br>100 -> 1<br>3 147 483 647 -> 0');
 
 insert into tests (last_modified, final, name, public, user_id, task_id, language, code)
-values (CURRENT_TIMESTAMP, true, 'final test', true, 1, 4, 'cpp', 'TEST_CASE("basic reverse") {
+values (CURRENT_TIMESTAMP, true, 'final', true, 1, 4, 'cpp', 'TEST_CASE("Basic reverse") {
   REQUIRE(Reverse(-1235) == -5321);
   REQUIRE(Reverse(98000) == 89);
 }
 
-TEST_CASE("Testing overflow") {
-  REQUIRE(Reverse(-2147483648) == -8463847412);
+TEST_CASE("Bigger numbers") {
+  REQUIRE(Reverse(-147483648) == -846384741);
   REQUIRE(Reverse(-2147483649) == 0);
-  REQUIRE(Reverse(2147483647) == 7463847412);
+  REQUIRE(Reverse(214748364) == 463847412);
   REQUIRE(Reverse(2147483648) == 0);
 }');
 
 insert into tests (last_modified, final, name, public, user_id, task_id, language, code)
-values (CURRENT_TIMESTAMP, true, 'final test', true, 1, 4, 'javascript', 'let assert = require("assert")
+values (CURRENT_TIMESTAMP, true, 'final', true, 1, 4, 'javascript', 'let assert = require("assert")
 
 describe("Final test", function () {
   it("Basic reverse", function () {
     assert.equal(Reverse(-1235), -5321)
     assert.equal(Reverse(98000), 89)
   }),
-  it("Testing overflow", function () {
-    assert.equal(Reverse(-2147483648), -8463847412)
+  it("Bigger numbers", function () {
+    assert.equal(Reverse(-147483648), -846384741)
     assert.equal(Reverse(-2147483649), 0)
-    assert.equal(Reverse(2147483647), 7463847412)
+    assert.equal(Reverse(214748364), 463847412)
     assert.equal(Reverse(2147483648), 0)
   })
 })');
@@ -268,7 +318,7 @@ values (1, 4, CURRENT_TIMESTAMP, 'javascript', 'public solution', true, 'functio
 insert into user_solutions (user_id, task_id, last_modified, language, name, public, code)
 values (1, 4, CURRENT_TIMESTAMP, 'cpp', 'public solution', true, 'using namespace std;
 
-int Reverse(int n) {
+int Reverse(long int n) {
   // write your solution here
   return 0;
 }');
@@ -281,7 +331,7 @@ values (1, 1, 'Median of two arrays', 'medium', true, CURRENT_TIMESTAMP,
         '<br>[1,3], [2] -> 2<br>[1,2], [3,4] -> 2.5');
 
 insert into tests (last_modified, final, name, public, user_id, task_id, language, code)
-values (CURRENT_TIMESTAMP, true, 'final test', true, 1, 5, 'javascript', 'let assert = require("assert")
+values (CURRENT_TIMESTAMP, true, 'final', true, 1, 5, 'javascript', 'let assert = require("assert")
 
 let firstBigArray = Array.from(Array(10_000_000).keys())
 let secondBigArray = [...Array(1_000_000).keys()].map(x => x + 13)
@@ -296,11 +346,25 @@ describe("Final test", function () {
   })
 })');
 
+insert into tests (last_modified, final, name, public, user_id, task_id, language, code)
+values (CURRENT_TIMESTAMP, true, 'final', true, 1, 5, 'python', 'firstBigArray = [i for i in range(0, 10_000_000)]
+secondBigArray = [i for i in range(13, 1_000_000 + 13)]
+
+def test_median():
+  assert Median([1, 3], [2]) == 2
+  assert Median([1, 2], [3, 4]) == 2.5
+  assert Median(firstBigArray, secondBigArray), 4499999.5');
+
 insert into user_solutions (user_id, task_id, last_modified, language, name, public, code)
 values (1, 5, CURRENT_TIMESTAMP, 'javascript', 'public solution', true, 'function Median(a, b) {
   // write your solution here
   return 0
 }');
+
+insert into user_solutions (user_id, task_id, last_modified, language, name, public, code)
+values (1, 5, CURRENT_TIMESTAMP, 'python', 'public solution', true, 'def Median(a, b):
+  # write your solution here
+  return 0');
 
 
 -- task Rome
@@ -311,7 +375,7 @@ values (1, 1, 'Roman numbers', 'medium', true, CURRENT_TIMESTAMP,
         '<br>II -> 2<br>MCMXCIV -> 1994');
 
 insert into tests (last_modified, final, name, public, user_id, task_id, language, code)
-values (CURRENT_TIMESTAMP, true, 'final test', true, 1, 6, 'go', 'package main
+values (CURRENT_TIMESTAMP, true, 'final', true, 1, 6, 'go', 'package main
 
 import (
   "testing"
@@ -337,20 +401,20 @@ func TestRome(t *testing.T) {
 }');
 
 insert into tests (last_modified, final, name, public, user_id, task_id, language, code)
-values (CURRENT_TIMESTAMP, true, 'final test', true, 1, 6, 'python', 'def test_rome():
+values (CURRENT_TIMESTAMP, true, 'final', true, 1, 6, 'python', 'def test_rome():
   assert Rome("III") == 3
   assert Rome("LVIII") == 58
   assert Rome("MCMXCIV") == 1994');
 
 insert into tests (last_modified, final, name, public, user_id, task_id, language, code)
-values (CURRENT_TIMESTAMP, true, 'final test', true, 1, 6, 'cpp', 'TEST_CASE("final test") {
+values (CURRENT_TIMESTAMP, true, 'final', true, 1, 6, 'cpp', 'TEST_CASE("final test") {
   REQUIRE(Rome("III") == 3);
   REQUIRE(Rome("LVIII") == 58);
   REQUIRE(Rome("MCMXCIV") == 1994);
 }');
 
 insert into tests (last_modified, final, name, public, user_id, task_id, language, code)
-values (CURRENT_TIMESTAMP, true, 'final test', true, 1, 6, 'javascript', 'let assert = require("assert")
+values (CURRENT_TIMESTAMP, true, 'final', true, 1, 6, 'javascript', 'let assert = require("assert")
 
 describe("Final test", function () {
   it("Basic cases", function () {
@@ -397,7 +461,13 @@ values (1, 1, 'Valid Parentheses', 'hard', true, CURRENT_TIMESTAMP,
         '(() -> 2<br>)[{()()}]) -> 8');
 
 insert into tests (last_modified, final, name, public, user_id, task_id, language, code)
-values (CURRENT_TIMESTAMP, true, 'final test', true, 1, 7, 'go', 'func TestParentheses(t *testing.T) {
+values (CURRENT_TIMESTAMP, true, 'final', true, 1, 7, 'go', 'package main
+
+import (
+  "testing"
+)
+
+func TestParentheses(t *testing.T) {
   testTable := []struct {
     input string
     want  int
@@ -417,14 +487,14 @@ values (CURRENT_TIMESTAMP, true, 'final test', true, 1, 7, 'go', 'func TestParen
 }');
 
 insert into tests (last_modified, final, name, public, user_id, task_id, language, code)
-values (CURRENT_TIMESTAMP, true, 'final test', true, 1, 7, 'cpp', 'TEST_CASE("final test") {
+values (CURRENT_TIMESTAMP, true, 'final', true, 1, 7, 'cpp', 'TEST_CASE("final test") {
   REQUIRE(Parentheses("(()") == 2);
   REQUIRE(Parentheses(")[()()])") == 6);
   REQUIRE(Parentheses("{{{{[{(abc)}]}()") == 10);
 }');
 
 insert into tests (last_modified, final, name, public, user_id, task_id, language, code)
-values (CURRENT_TIMESTAMP, true, 'final test', true, 1, 7, 'javascript', 'let assert = require("assert")
+values (CURRENT_TIMESTAMP, true, 'final', true, 1, 7, 'javascript', 'let assert = require("assert")
 
 describe("Final test", function () {
   it("Basic cases", function () {
@@ -435,7 +505,7 @@ describe("Final test", function () {
 })');
 
 insert into tests (last_modified, final, name, public, user_id, task_id, language, code)
-values (CURRENT_TIMESTAMP, true, 'final test', true, 1, 7, 'python', 'def test_parentheses():
+values (CURRENT_TIMESTAMP, true, 'final', true, 1, 7, 'python', 'def test_parentheses():
   assert Parentheses("(()") == 3
   assert Parentheses(")[()()])") == 6
   assert Parentheses("{{{{[{(abc)}]}()") == 10');
@@ -471,70 +541,98 @@ values (1, 7, CURRENT_TIMESTAMP, 'python', 'public solution', true, 'def Parenth
 
 -- task Longest Substring
 
--- insert into tasks (author_id, approver_id, title, difficulty, is_published, added_on, text)
--- values (1, 1, 'Longest Substring', 'medium', true, CURRENT_TIMESTAMP,
---         'Write a function named "Longest" that returns the longest substring without repeating characters. For example:<br>' ||
---         'abcabcbb -> 3 (because "abc")<br>' ||
---         '"bbbbb" -> 1 (because "b")');
---
--- insert into tests (last_modified, final, name, public, user_id, task_id, language, code)
--- values (CURRENT_TIMESTAMP, true, 'final test', true, 1, 7, 'go', 'func TestParentheses(t *testing.T) {
---   testTable := []struct {
---     input string
---     want  int
---   }{
---     {input: "(()", want: 2},
---     {input: ")[()()])", want: 6},
---     {input: "{{{{[{(abc)}]}()", want: 10},
---   }
---
---   for _, test := range testTable {
---     got := Parentheses(test.input)
---     if got != test.want {
---       t.Errorf("got: %d, but want: %d. Input was %q",
---         got, test.want, test.input)
---     }
---   }
--- }');
---
--- insert into tests (last_modified, final, name, public, user_id, task_id, language, code)
--- values (CURRENT_TIMESTAMP, true, 'final test', true, 1, 7, 'cpp', 'TEST_CASE("final test") {
---   REQUIRE(Parentheses("(()") == 2);
---   REQUIRE(Parentheses(")[()()])") == 6);
---   REQUIRE(Parentheses("{{{{[{(abc)}]}()") == 10);
--- }');
---
--- insert into tests (last_modified, final, name, public, user_id, task_id, language, code)
--- values (CURRENT_TIMESTAMP, true, 'final test', true, 1, 7, 'javascript', 'let assert = require("assert")
---
--- describe("Final test", function () {
---   it("Basic cases", function () {
---     assert.equal(Parentheses("(()"), 2)
---     assert.equal(Parentheses(")[()()])"), 6)
---     assert.equal(Parentheses("{{{{[{(abc)}]}()"), 10)
---   })
--- })');
---
--- insert into user_solutions (user_id, task_id, last_modified, language, name, public, code)
--- values (1, 7, CURRENT_TIMESTAMP, 'go', 'public solution', true, 'package main
---
--- func Parentheses(parentheses string) int {
---   // write your solution here
---   return 0
--- }');
---
--- insert into user_solutions (user_id, task_id, last_modified, language, name, public, code)
--- values (1, 7, CURRENT_TIMESTAMP, 'cpp', 'public solution', true, '#include <string>
---
--- using namespace std;
---
--- int Parentheses(string parentheses) {
---   // write your solution here
---   return 0;
--- }');
---
--- insert into user_solutions (user_id, task_id, last_modified, language, name, public, code)
--- values (1, 7, CURRENT_TIMESTAMP, 'javascript', 'public solution', true, 'function Parentheses(parentheses) {
---   // write your solution here
---   return 0
--- }');
+insert into tasks (author_id, approver_id, title, difficulty, is_published, added_on, text)
+values (1, 1, 'Longest Substring', 'medium', true, CURRENT_TIMESTAMP,
+        'Write a function named "Longest" that returns the longest substring without repeating characters. For example:<br>' ||
+        'abcabcbb -> 3 (because "abc")<br>' ||
+        '"bbbbb" -> 1 (because "b")');
+
+insert into tests (last_modified, final, name, public, user_id, task_id, language, code)
+values (CURRENT_TIMESTAMP, true, 'final', true, 1, 8, 'go', 'package main
+
+import (
+  "strings"
+  "testing"
+)
+
+func TestLongest(t *testing.T) {
+  longString := strings.Repeat("a", 500_000) + "abcdef" + strings.Repeat("a", 500_000)
+
+  testTable := []struct {
+    input string
+    want  int
+  }{
+    {input: "abcabcbb", want: 2},
+    {input: "aaa", want: 1},
+    {input: longString, want: 6},
+  }
+
+  for _, test := range testTable {
+    got := Longest(test.input)
+    if got != test.want {
+      if len(test.input) > 10 {
+        test.input = "too long to show"
+      }
+      t.Errorf("got: %d, but want: %d. Input was %q",
+        got, test.want, test.input)
+    }
+  }
+}');
+
+insert into tests (last_modified, final, name, public, user_id, task_id, language, code)
+values (CURRENT_TIMESTAMP, true, 'final', true, 1, 8, 'cpp', '#include <string>
+
+using namespace std;
+
+string getA() {
+  string res = "";
+  for (int i = 0; i < 500000; i++) {
+    res += "a";
+  }
+  return res;
+}
+
+TEST_CASE("final test") {
+  string longString = getA() + "abcdef" + getA();
+
+  REQUIRE(Longest("abcabcbb") == 2);
+  REQUIRE(Longest("aaa") == 1);
+  REQUIRE(Longest(longString) == 6);
+}');
+
+insert into tests (last_modified, final, name, public, user_id, task_id, language, code)
+values (CURRENT_TIMESTAMP, true, 'final', true, 1, 8, 'javascript', 'let assert = require("assert")
+
+let longString = "a".repeat(500_000) + "abcdef" + "a".repeat(500_000)
+
+describe("Final test", function () {
+  it("Basic cases", function () {
+    assert.equal(Longest("abcabcbb"), 2)
+    assert.equal(Longest("aaa"), 1)
+    assert.equal(Longest(longString), 6)
+  })
+})');
+
+insert into user_solutions (user_id, task_id, last_modified, language, name, public, code)
+values (1, 8, CURRENT_TIMESTAMP, 'go', 'public solution', true, 'package main
+
+func Longest(s string) int {
+  // write your solution here
+  return 0
+}');
+
+insert into user_solutions (user_id, task_id, last_modified, language, name, public, code)
+values (1, 8, CURRENT_TIMESTAMP, 'cpp', 'public solution', true, '#include <string>
+
+using namespace std;
+
+int Longest(string s) {
+  // write your solution here
+  return 0;
+}');
+
+insert into user_solutions (user_id, task_id, last_modified, language, name, public, code)
+values (1, 8, CURRENT_TIMESTAMP, 'javascript', 'public solution', true, 'function Longest(s) {
+  // write your solution here
+  return 0
+}');
