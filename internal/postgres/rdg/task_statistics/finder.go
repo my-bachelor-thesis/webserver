@@ -28,7 +28,7 @@ func GetByTaskId(tx postgres.PoolInterface, taskId int) (TaskStatistic, error) {
 					usr.binary_size,
 					t2.language
 				from tests t2
-				join user_solutions_results usr on usr.test_id = t2.id
+				join user_solutions_results usr on usr.test_id = t2.id and t2.final = true
 				and t2.language = t_groups.language and t2.task_id = $2
 				and usr.exit_code = 0
 				join users u on u.id = t2.user_id
