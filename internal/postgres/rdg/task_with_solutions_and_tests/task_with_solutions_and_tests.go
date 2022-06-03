@@ -8,6 +8,7 @@ type NameAndCode struct {
 
 type TaskWithSolutionsAndTests struct {
 	TaskId          int            `json:"task_id"`
+	IsPublished     bool           `json:"is_published"`
 	Title           string         `json:"title" validate:"required"`
 	Difficulty      string         `json:"difficulty" validate:"required"`
 	Description     string         `json:"description" validate:"required"`

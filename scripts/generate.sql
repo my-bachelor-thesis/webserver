@@ -47,9 +47,9 @@ values (true, 'website', 'admin', 'admin', 'admin@website.com',
 insert into tasks (author_id, approver_id, title, difficulty, is_published, added_on, text)
 values (1, 1, 'Fizz buzz', 'easy',
         true, CURRENT_TIMESTAMP,
-        'Fizz buzz is a group word game for children to teach them about division. ' ||
+        '<p>Fizz buzz is a group word game for children to teach them about division. ' ||
         'Players take turns to count incrementally, replacing any number divisible by three with the word "fizz", and any number divisible by five with the word "buzz". ' ||
-        'Write a function named "TestFizzBuzz1_000_000", which will return an array with the first 1 000 000 elements of this sequence.');
+        'Write a function named "TestFizzBuzz1_000_000", which will return an array with the first 1 000 000 elements of this sequence.</p>');
 
 insert into tests (last_modified, final, name, public, user_id, task_id, language, code)
 values (CURRENT_TIMESTAMP, true, 'final', true, 1, 1, 'go', 'package main
@@ -139,7 +139,7 @@ values (1, 1, CURRENT_TIMESTAMP, 'javascript', 'public solution', true, 'functio
 insert into tasks (author_id, approver_id, title, difficulty, is_published, added_on, text)
 values (1, 1, 'Get first 1000 primes', 'easy',
         true, CURRENT_TIMESTAMP,
-        'Rewrite already an existing solution in Go into Python');
+        '<p>Rewrite already an existing solution in Go into Python</p>');
 
 insert into tests (last_modified, final, name, public, user_id, task_id, language, code)
 values (CURRENT_TIMESTAMP, true, 'final', true, 1, 2, 'go', 'package main
@@ -214,8 +214,8 @@ values (1, 2, CURRENT_TIMESTAMP, 'python', 'public solution', true, 'def primes(
 
 insert into tasks (author_id, approver_id, title, difficulty, is_published, added_on, text)
 values (1, 1, 'Sum of two', 'easy', true, CURRENT_TIMESTAMP,
-        'Write a function named "Sum", which will take two arguments - the first one is an array of numbers and the second one is a number. ' ||
-        'Return indexes of two numbers from the array which sum to the second argument. If such numbers don''t exist, return an empty array');
+        '<p>Write a function named "Sum", which will take two arguments - the first one is an array of numbers and the second one is a number. ' ||
+        'Return indexes of two numbers from the array which sum to the second argument. If such numbers don''t exist, return an empty array</p>');
 
 insert into tests (last_modified, final, name, public, user_id, task_id, language, code)
 values (CURRENT_TIMESTAMP, true, 'final', true, 1, 3, 'go', 'package main
@@ -277,8 +277,8 @@ vector<int> Sum(vector<int> arr, int sum) {
 
 insert into tasks (author_id, approver_id, title, difficulty, is_published, added_on, text)
 values (1, 1, 'Reverse integer', 'medium', true, CURRENT_TIMESTAMP,
-        'Write a function named "Reverse", which for given x will return reversed x. Return 0 if x is not in range [-2^31, 2^31 - 1].<br>' ||
-        'For example:<br>-123 -> -321<br>100 -> 1<br>3 147 483 647 -> 0');
+        '<p>Write a function named "Reverse", which for given x will return reversed x. Return 0 if x is not in range [-2^31, 2^31 - 1]. ' ||
+        'For example:</p><p>-123 -> -321</p><p>100 -> 1</p><p>3 147 483 647 -> 0</p>');
 
 insert into tests (last_modified, final, name, public, user_id, task_id, language, code)
 values (CURRENT_TIMESTAMP, true, 'final', true, 1, 4, 'cpp', 'TEST_CASE("Basic reverse") {
@@ -327,8 +327,8 @@ int Reverse(long int n) {
 
 insert into tasks (author_id, approver_id, title, difficulty, is_published, added_on, text)
 values (1, 1, 'Median of two arrays', 'medium', true, CURRENT_TIMESTAMP,
-        'Write a function named "Median" which takes two sorted arrays and returns their median<br>For examaple:' ||
-        '<br>[1,3], [2] -> 2<br>[1,2], [3,4] -> 2.5');
+        '<p>Write a function named "Median" which takes two sorted arrays and returns their median. For examaple:</p>' ||
+        '<p>[1,3], [2] -> 2</p><p>[1,2], [3,4] -> 2.5</p>');
 
 insert into tests (last_modified, final, name, public, user_id, task_id, language, code)
 values (CURRENT_TIMESTAMP, true, 'final', true, 1, 5, 'javascript', 'let assert = require("assert")
@@ -371,8 +371,8 @@ values (1, 5, CURRENT_TIMESTAMP, 'python', 'public solution', true, 'def Median(
 
 insert into tasks (author_id, approver_id, title, difficulty, is_published, added_on, text)
 values (1, 1, 'Roman numbers', 'medium', true, CURRENT_TIMESTAMP,
-        'Write a function named "Rome" that converts Arabic numbers into Roman<br>For examaple:' ||
-        '<br>II -> 2<br>MCMXCIV -> 1994');
+        '<p>Write a function named "Rome" that converts Arabic numbers into Roman. For examaple:</p>' ||
+        '<p>II -> 2</p><p>MCMXCIV -> 1994</p>');
 
 insert into tests (last_modified, final, name, public, user_id, task_id, language, code)
 values (CURRENT_TIMESTAMP, true, 'final', true, 1, 6, 'go', 'package main
@@ -457,8 +457,8 @@ values (1, 6, CURRENT_TIMESTAMP, 'python', 'public solution', true, 'def Rome(ro
 
 insert into tasks (author_id, approver_id, title, difficulty, is_published, added_on, text)
 values (1, 1, 'Valid Parentheses', 'hard', true, CURRENT_TIMESTAMP,
-        'Write a function named "Parentheses" that returns a number of parentheses that aren''t mismatched<br>For examaple:<br>' ||
-        '(() -> 2<br>)[{()()}]) -> 8');
+        '<p>Write a function named "Parentheses" that returns a number of parentheses that aren''t mismatched. For examaple:</p>' ||
+        '<p>(() -> 2</p><p>)[{()()}]) -> 8</p>');
 
 insert into tests (last_modified, final, name, public, user_id, task_id, language, code)
 values (CURRENT_TIMESTAMP, true, 'final', true, 1, 7, 'go', 'package main
@@ -543,9 +543,9 @@ values (1, 7, CURRENT_TIMESTAMP, 'python', 'public solution', true, 'def Parenth
 
 insert into tasks (author_id, approver_id, title, difficulty, is_published, added_on, text)
 values (1, 1, 'Longest Substring', 'medium', true, CURRENT_TIMESTAMP,
-        'Write a function named "Longest" that returns the longest substring without repeating characters. For example:<br>' ||
-        'abcabcbb -> 3 (because "abc")<br>' ||
-        '"bbbbb" -> 1 (because "b")');
+        '<p>Write a function named "Longest" that returns the longest substring without repeating characters. For example:</p>' ||
+        '<p>abcabcbb -> 3 (because "abc")</p>' ||
+        '<p>"bbbbb" -> 1 (because "b")</p>');
 
 insert into tests (last_modified, final, name, public, user_id, task_id, language, code)
 values (CURRENT_TIMESTAMP, true, 'final', true, 1, 8, 'go', 'package main

@@ -22,11 +22,12 @@ func GetInitDataForEditorByTaskId(taskId int) (*initial_data_for_editor.InitialD
 		t.author_id,
 		to_char(t.added_on, 'DD.MM.YY, HH24:MI:SS'),
 		(select u.first_name || ' ' || u.last_name from users u where u.id = t.author_id) author,
-		(select u.first_name || ' ' || u.last_name from users u where u.id = t.approver_id) approver
+		(select u.first_name || ' ' || u.last_name from users u where u.id = t.approver_id) approver,
+		t.approver_id
 	from tasks t where id = $1`
 	initData := initial_data_for_editor.InitialDataForEditor{}
-	if err := tx.QueryRow(postgres.GetCtx(), statement, taskId).Scan(&initData.Title, &initData.Difficulty,
-		&initData.Text, &initData.AuthorId, &initData.AddedOn, &initData.Author, &initData.Approver); err != nil {
+	if err := tx.QueryRow(postgres.GetCtx(), statement, taskId).Scan(&initData.Title, &initData.Difficulty, &initData.Text,
+		&initData.AuthorId, &initData.AddedOn, &initData.Author, &initData.Approver, &initData.ApproverId); err != nil {
 		return nil, err
 	}
 

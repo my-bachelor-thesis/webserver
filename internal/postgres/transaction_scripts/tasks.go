@@ -148,7 +148,7 @@ func AddTask(claims *jwt.CustomClaims, request *task_with_solutions_and_tests.Ta
 	// if updating
 	if request.TaskId != 0 {
 		task.Id = request.TaskId
-		if err = task.UpdateTitleDifficultyAndText(tx); err != nil {
+		if err = task.UpdateTitleDifficultyDateAndText(tx); err != nil {
 			return err
 		}
 		if err := deleteAllPublicOrFinal(tx, task.Id); err != nil {

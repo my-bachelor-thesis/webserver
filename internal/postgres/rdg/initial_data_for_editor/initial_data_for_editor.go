@@ -8,5 +8,6 @@ type InitialDataForEditor struct {
 	Author     string   `json:"author"`
 	AuthorId   int      `json:"author_id"`
 	Approver   string   `json:"approver"`
+	ApproverId int      `json:"approver_id"`
 	Languages  []string `json:"languages"`
 }

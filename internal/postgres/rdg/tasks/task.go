@@ -64,8 +64,8 @@ func (task *Task) ApproveAndPublish(tx postgres.PoolInterface) error {
 	return err
 }
 
-func (task *Task) UpdateTitleDifficultyAndText(tx postgres.PoolInterface) error {
-	statement := "update tasks set title = $1, difficulty = $2, text = $3 where id = $4 and author_id = $5"
+func (task *Task) UpdateTitleDifficultyDateAndText(tx postgres.PoolInterface) error {
+	statement := "update tasks set title = $1, difficulty = $2, text = $3, added_on = CURRENT_TIMESTAMP where id = $4 and author_id = $5"
 	_, err := tx.Exec(postgres.GetCtx(), statement,
 		task.Title, task.Difficulty, task.Text, task.Id, task.AuthorId)
 	return err

@@ -18,11 +18,12 @@ func GetTaskWithSolutionsAndTasksByTaskId(taskId, authorId int) (*task_with_solu
 	select
 		t.title,
 		t.difficulty,
-		t.text
+		t.text,
+		t.is_published
 	from tasks t where id = $1 and author_id = $2`
 	task := task_with_solutions_and_tests.TaskWithSolutionsAndTests{}
 	if err := tx.QueryRow(postgres.GetCtx(), taskStatement, taskId, authorId).Scan(&task.Title, &task.Difficulty,
-		&task.Description); err != nil {
+		&task.Description, &task.IsPublished); err != nil {
 		return nil, err
 	}
 
