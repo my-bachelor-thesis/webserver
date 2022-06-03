@@ -21,27 +21,27 @@ type DenyRequest struct {
 }
 
 func AllTasksGet(c echo.Context) error {
-	search, date, name, difficulty, page, err := getFilterParams(c)
+	by, err := getFilterParams(c)
 	if err != nil {
 		return err
 	}
-	tsks, err := tasks.GetApprovedAndPublishedByFilter(postgres.GetPool(), search, date, name, difficulty, page)
+	tsks, err := tasks.GetApprovedAndPublishedByFilter(postgres.GetPool(), by)
 
 	return returnEmptySliceIfNoRows(c, tsks, err)
 }
 
 func AllUsersTasksGet(c echo.Context) error {
-	user, err := jwt.GetClaimsFromRequest(c)
+	claims, err := jwt.GetClaimsFromRequest(c)
 	if err != nil {
 		return err
 	}
 
-	search, date, name, difficulty, page, err := getFilterParams(c)
+	by, err := getFilterParams(c)
 	if err != nil {
 		return err
 	}
 
-	t, err := tasks.GetByAuthorIdAndFilter(postgres.GetPool(), user.UserId, search, date, name, difficulty, page)
+	t, err := tasks.GetByAuthorIdAndFilter(postgres.GetPool(), claims.UserId, by)
 	return returnEmptySliceIfNoRows(c, t, err)
 }
 
@@ -81,12 +81,12 @@ func AllTasksUnapprovedGet(c echo.Context) error {
 		return c.JSON(http.StatusForbidden, "not admin, forbidden")
 	}
 
-	search, date, name, difficulty, page, err := getFilterParams(c)
+	by, err := getFilterParams(c)
 	if err != nil {
 		return err
 	}
 
-	t, err := tasks.GetUnapproved(postgres.GetPool(), search, date, name, difficulty, page)
+	t, err := tasks.GetUnapproved(postgres.GetPool(), by)
 	return returnEmptySliceIfNoRows(c, t, err)
 }
 
@@ -156,16 +156,19 @@ func UnpublishedSavedTaskGet(c echo.Context) error {
 	return c.JSON(http.StatusOK, task)
 }
 
-func getFilterParams(c echo.Context) (search, date, name, difficulty string, page int, err error) {
-	search = c.QueryParam("search")
-	date = c.QueryParam("date")
-	name = c.QueryParam("name")
-	difficulty = c.QueryParam("difficulty")
-	page, err = strconv.Atoi(c.QueryParam("page"))
-	if err == nil && page < 1 {
+func getFilterParams(c echo.Context) (*tasks.FilterBy, error) {
+	by := &tasks.FilterBy{}
+	var err error
+	by.Search = c.QueryParam("search")
+	by.Date = c.QueryParam("date")
+	by.Name = c.QueryParam("name")
+	by.Difficulty = c.QueryParam("difficulty")
+	by.Page, err = strconv.Atoi(c.QueryParam("page"))
+	by.NotPublished = c.QueryParam("not-published")
+	if err == nil && by.Page < 1 {
 		err = errors.New("wrong page")
 	}
-	return
+	return by, err
 }
 
 func returnEmptySliceIfNoRows(c echo.Context, result interface{}, err error) error {

@@ -25,29 +25,29 @@ func getByCondition(tx postgres.PoolInterface, id int, condition string, args ..
 	return &task, err
 }
 
-func GetUnapproved(tx postgres.PoolInterface, keyword, dateSort, nameSort, difficulty string, page int) ([]*Task, error) {
+func GetUnapproved(tx postgres.PoolInterface, by *FilterBy) ([]*Task, error) {
 	condition := "is_published = true and approver_id = 0"
-	return getBySearchBarFilers(tx, condition, keyword, dateSort, nameSort, difficulty, page, []interface{}{})
+	return getBySearchBarFilers(tx, condition, []interface{}{}, by)
 }
 
-func GetByAuthorIdAndFilter(tx postgres.PoolInterface, userId int, keyword, dateSort, nameSort, difficulty string, page int) ([]*Task, error) {
+func GetByAuthorIdAndFilter(tx postgres.PoolInterface, userId int, by *FilterBy) ([]*Task, error) {
 	condition := "author_id = $1"
-	return getBySearchBarFilers(tx, condition, keyword, dateSort, nameSort, difficulty, page, []interface{}{userId})
+	return getBySearchBarFilers(tx, condition, []interface{}{userId}, by)
 }
 
-func GetApprovedAndPublishedByFilter(tx postgres.PoolInterface, keyword, dateSort, nameSort, difficulty string, page int) ([]*Task, error) {
+func GetApprovedAndPublishedByFilter(tx postgres.PoolInterface, by *FilterBy) ([]*Task, error) {
 	condition := "is_published = true and approver_id != 0"
-	return getBySearchBarFilers(tx, condition, keyword, dateSort, nameSort, difficulty, page, []interface{}{})
+	return getBySearchBarFilers(tx, condition, []interface{}{}, by)
 }
 
-func getBySearchBarFilers(tx postgres.PoolInterface, condition, keyword, dateSort, nameSort, difficulty string, page int, conditionArgs []interface{}) ([]*Task, error) {
-	if keyword != "" {
+func getBySearchBarFilers(tx postgres.PoolInterface, condition string, conditionArgs []interface{}, by *FilterBy) ([]*Task, error) {
+	if by.Search != "" {
 		condition += fmt.Sprintf(" and (strpos(lower(title), $%d) > 0 or strpos(lower(text), $%d) > 0)",
 			len(conditionArgs)+1, len(conditionArgs)+2)
-		conditionArgs = append(conditionArgs, keyword, keyword)
+		conditionArgs = append(conditionArgs, by.Search, by.Search)
 	}
 
-	switch difficulty {
+	switch by.Difficulty {
 	case "easy":
 		condition += " and difficulty = 'easy'"
 	case "medium":
@@ -56,19 +56,23 @@ func getBySearchBarFilers(tx postgres.PoolInterface, condition, keyword, dateSor
 		condition += " and difficulty = 'hard'"
 	}
 
+	if by.NotPublished != "" {
+		condition += " and is_published = false"
+	}
+
 	sort := "order by added_on desc"
-	if dateSort == "asc" {
+	if by.Date == "asc" {
 		sort = "order by added_on asc"
 	}
 
-	if nameSort == "desc" {
+	if by.Name == "desc" {
 		sort += ", title desc"
 	} else {
 		sort += ", title asc"
 	}
 
 	perPage := 7
-	sort += fmt.Sprintf(" limit %d offset %d", perPage, perPage*page-perPage)
+	sort += fmt.Sprintf(" limit %d offset %d", perPage, perPage*by.Page-perPage)
 
 	return getManyWithConditions(tx, condition, sort, conditionArgs...)
 }
@@ -104,4 +108,13 @@ func load(qr pgx.Row, task *Task) error {
 	err := qr.Scan(&task.Id, &task.AuthorId, &task.ApproverId, &task.Title,
 		&task.Difficulty, &task.IsPublished, &task.AddedOn, &task.Text)
 	return err
+}
+
+type FilterBy struct {
+	Search       string
+	Date         string
+	Name         string
+	Difficulty   string
+	Page         int
+	NotPublished string // false if empty
 }
