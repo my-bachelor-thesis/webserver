@@ -43,7 +43,6 @@ func bindRequestRunAndSaveResult(c echo.Context) (*user_solutions_results.UserSo
 
 	err := redis.Get(req.HashId, usr)
 	if err == nil {
-		fmt.Println("som redis")
 		return usr, req, nil
 	}
 	if err != nil {
