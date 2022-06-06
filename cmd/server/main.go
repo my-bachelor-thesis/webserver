@@ -17,7 +17,7 @@ import (
 
 var frontendEndpoints = [...]string{"/", "add-task", "task", "login", "register", "logout", "about",
 	"account-settings", "my-tasks", "approve", "statistic", "promote-user", "reset-password-request",
-	"email-verification", "password-reset", "edit-task"}
+	"email-verification", "password-reset", "edit-task", "user-solution"}
 
 // custom form validator
 
@@ -132,6 +132,10 @@ func main() {
 
 	// task statistic
 	e.GET("/statistic/:task-id", handlers.StatisticGet)
+
+	// user solution
+	e.GET("/user-solution/:id", handlers.UserSolutionGet)
+	e.POST("/user-solution/delete", handlers.DeleteUserSolutionPost)
 
 	// other
 	e.POST("/do-password-reset", handlers.ResetPasswordPost)

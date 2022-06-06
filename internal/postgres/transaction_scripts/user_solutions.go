@@ -5,9 +5,10 @@ import (
 	"github.com/labstack/echo/v4"
 	"webserver/internal/postgres"
 	"webserver/internal/postgres/rdg/user_solutions"
+	"webserver/internal/postgres/rdg/users"
 )
 
-func UpdateUserSolutionNamePost(c echo.Context) error {
+func UpdateUserSolutionName(c echo.Context) error {
 	conn, tx, err := getConnectionFromPoolAndStartTrans(pgx.RepeatableRead)
 	if err != nil {
 		return err
@@ -30,4 +31,34 @@ func UpdateUserSolutionNamePost(c echo.Context) error {
 	}
 
 	return tx.Commit(postgres.GetCtx())
+}
+
+func DeleteUserSolution(solutionId, adminId int) (admin, user *users.User, us *user_solutions.UserSolution, err error) {
+	conn, tx, err := getConnectionFromPoolAndStartTrans(pgx.RepeatableRead)
+	if err != nil {
+		return nil, nil, nil, err
+	}
+	defer tx.Rollback(postgres.GetCtx())
+	defer conn.Release()
+
+	us, err = user_solutions.GetById(tx, solutionId)
+	if err != nil {
+		return nil, nil, nil, err
+	}
+
+	if err := us.HideFromStatistic(tx); err != nil {
+		return nil, nil, nil, err
+	}
+
+	user, err = users.GetById(tx, us.UserId)
+	if err != nil {
+		return nil, nil, nil, err
+	}
+
+	admin, err = users.GetById(tx, adminId)
+	if err != nil {
+		return nil, nil, nil, err
+	}
+
+	return admin, user, us, tx.Commit(postgres.GetCtx())
 }

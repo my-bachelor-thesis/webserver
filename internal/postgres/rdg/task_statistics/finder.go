@@ -19,6 +19,7 @@ func GetByTaskId(tx postgres.PoolInterface, taskId int) (TaskStatistic, error) {
 				) t_groups
 				join lateral (
 					select
+						usr.user_solution_id,
 						u.username,
 						row_number() over (partition by u.username order by usr.real_time asc) n,
 						usr.compilation_time,
@@ -33,6 +34,7 @@ func GetByTaskId(tx postgres.PoolInterface, taskId int) (TaskStatistic, error) {
 					and t2.language = t_groups.language and t2.task_id = $2
 					and usr.exit_code = 0
 					join users u on u.id = usr.user_id
+					join user_solutions us on usr.user_solution_id = us.id and us.hide_in_statistic = false 
 				) t_res on true and n = 1
 		),
 		
@@ -44,6 +46,7 @@ func GetByTaskId(tx postgres.PoolInterface, taskId int) (TaskStatistic, error) {
 		)
 		
 		select
+			user_solution_id,
 			username,
 			compilation_time,
 			real_time,
@@ -63,7 +66,7 @@ func GetByTaskId(tx postgres.PoolInterface, taskId int) (TaskStatistic, error) {
 	var ts TaskStatistic
 	for rows.Next() {
 		se := &StatisticEntry{}
-		if err = rows.Scan(&se.Username, &se.CompilationTime, &se.RealTime, &se.KernelTime,
+		if err = rows.Scan(&se.SolutionId, &se.Username, &se.CompilationTime, &se.RealTime, &se.KernelTime,
 			&se.UserTime, &se.MaxRamUsage, &se.BinarySize, &se.Language); err != nil {
 			return nil, err
 		}

@@ -41,14 +41,15 @@ create table tests
 drop table if exists user_solutions cascade;
 create table user_solutions
 (
-    id            serial primary key,
-    user_id       int default 0 references users on delete set default not null,
-    task_id       int references tasks on delete cascade               not null,
-    last_modified timestamp with time zone                             not null,
-    language      varchar                                              not null,
-    name          varchar                                              not null,
-    public        boolean                                              not null,
-    code          varchar                                              not null
+    id                serial primary key,
+    user_id           int     default 0 references users on delete set default not null,
+    task_id           int references tasks on delete cascade                   not null,
+    last_modified     timestamp with time zone                                 not null,
+    language          varchar                                                  not null,
+    name              varchar                                                  not null,
+    public            boolean                                                  not null,
+    hide_in_statistic boolean default false                                    not null,
+    code              varchar                                                  not null
 );
 
 drop table if exists user_solutions_tests cascade;

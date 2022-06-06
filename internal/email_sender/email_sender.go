@@ -41,6 +41,17 @@ func SendDenial(receiverMail, taskName, adminName, adminEmail, reason string) er
 			taskName, adminName, adminEmail, reason))
 }
 
+func SendOnUserSolutionDeletion(receiverMail, code, adminName, adminEmail, reason string) error {
+	return send(receiverMail, "Your solution has been removed from the statistic",
+		fmt.Sprintf("Your solution has been removed from the statistic by %q(%s). The reason for it is: %q.\n"+
+			"Code of your solution:\n\n%s", adminName, adminEmail, reason, code))
+}
+
+func SendOnTaskApproval(receiverMail, adminName, adminEmail, taskName string) error {
+	return send(receiverMail, "Your task has been approved",
+		fmt.Sprintf("Your task %q has been approved by %q(%s)", taskName, adminName, adminEmail))
+}
+
 func GenerateToken() string {
 	length := 20
 	b := make([]byte, length)

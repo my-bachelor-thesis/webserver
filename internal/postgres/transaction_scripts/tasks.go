@@ -77,25 +77,35 @@ func DeleteTask(c echo.Context, claims *jwt.CustomClaims) error {
 	return tx.Commit(postgres.GetCtx())
 }
 
-func ApproveTask(c echo.Context, claims *jwt.CustomClaims) error {
+func ApproveTask(c echo.Context, claims *jwt.CustomClaims) (task *tasks.Task, user *users.User, admin *users.User, err error) {
 	conn, tx, err := getConnectionFromPoolAndStartTrans(pgx.RepeatableRead)
 	if err != nil {
-		return err
+		return nil, nil, nil, err
 	}
 	defer tx.Rollback(postgres.GetCtx())
 	defer conn.Release()
 
-	_, task, err := bindAndFind(tx, c, tasks.GetById)
+	_, task, err = bindAndFind(tx, c, tasks.GetById)
 	if err != nil {
-		return err
+		return nil, nil, nil, err
 	}
 
 	task.ApproverId = claims.UserId
 	if err := task.Approve(tx); err != nil {
-		return err
+		return nil, nil, nil, err
 	}
 
-	return tx.Commit(postgres.GetCtx())
+	admin, err = users.GetById(tx, claims.UserId)
+	if err != nil {
+		return nil, nil, nil, err
+	}
+
+	user, err = users.GetById(tx, task.AuthorId)
+	if err != nil {
+		return nil, nil, nil, err
+	}
+
+	return task, user, admin, tx.Commit(postgres.GetCtx())
 }
 
 func DenyTask(claims *jwt.CustomClaims, taskId, authorId int) (task *tasks.Task, user *users.User, admin *users.User, err error) {

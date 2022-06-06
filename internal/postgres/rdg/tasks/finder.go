@@ -65,12 +65,6 @@ func getBySearchBarFilers(tx postgres.PoolInterface, condition string, condition
 		sort = "order by added_on asc"
 	}
 
-	if by.Name == "desc" {
-		sort += ", title desc"
-	} else {
-		sort += ", title asc"
-	}
-
 	perPage := 7
 	sort += fmt.Sprintf(" limit %d offset %d", perPage, perPage*by.Page-perPage)
 
@@ -113,7 +107,6 @@ func load(qr pgx.Row, task *Task) error {
 type FilterBy struct {
 	Search       string
 	Date         string
-	Name         string
 	Difficulty   string
 	Page         int
 	NotPublished string // false if empty

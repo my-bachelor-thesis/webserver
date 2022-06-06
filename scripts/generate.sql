@@ -35,11 +35,11 @@ alter sequence tests_id_seq restart with 1;
 -- insert test users (passwords are 1234)
 
 insert into users (is_admin, first_name, last_name, username, email, password, activated)
-values (true, 'website', 'admin', 'admin', 'admin@website.com',
+values (true, 'website', 'admin', 'admin', 'jan@jankelemen.net',
         '$2a$10$dY6ifXE0GuutyZwE0OjL/OsRcNLrI6N2HiZpaf.vD8/nAU7txxIX2', true),
-       (false, 'first', 'user', 'user1', 'user1@email.com',
+       (true, 'second', 'admin', 'admin2', 'janko.kelemen@gmail.com',
         '$2a$10$6yl63KhFSNK0ds3eSxY6CONCXIwSznYZzlQi2h560cx9rT1VYDS9.', true),
-       (false, 'second', 'user', 'user2', 'user2@email.com',
+       (false, 'first', 'user', 'user1', '	my.bachelors.thesis@gmail.com',
         '$2a$10$ZcLkQLciNXCq50cOHMSX2ORf7DHd0rRVdn7XmGZZHC37kdYQEa.Xa', true);
 
 -- task Fizzbuzz
@@ -110,29 +110,6 @@ insert into user_solutions (user_id, task_id, last_modified, language, name, pub
 values (1, 1, CURRENT_TIMESTAMP, 'javascript', 'public solution', true, 'function FizzBuzz1_000_000() {
   return []
 }');
-
--- insert into user_solutions (user_id, task_id, last_modified, language, name, public, code)
--- values (1, 1, CURRENT_TIMESTAMP, 'go', 'my solution 1', false, 'package main
---
--- import (
--- 	"strconv"
--- )
---
--- func FizzBuzz1_000_000() []string {
--- 	res := make([]string, 0, 1_000_000)
--- 	for i := 1; i <= 1_000_000; i++ {
--- 		if i%3 == 0 && i%5 == 0 {
--- 			res = append(res, "fizzbuzz")
--- 		} else if i%3 == 0 {
--- 			res = append(res, "fizz")
--- 		} else if i%5 == 0 {
--- 			res = append(res, "buzz")
--- 		} else {
--- 			res = append(res, strconv.Itoa(i))
--- 		}
--- 	}
--- 	return res
--- }');
 
 -- task Primes
 

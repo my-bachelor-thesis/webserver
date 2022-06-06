@@ -96,7 +96,12 @@ func ApproveTaskPost(c echo.Context) error {
 		return err
 	}
 
-	return transaction_scripts.ApproveTask(c, claims)
+	task, user, admin, err := transaction_scripts.ApproveTask(c, claims)
+	if err != nil {
+		return err
+	}
+
+	return email_sender.SendOnTaskApproval(user.Email, admin.Username, admin.Email, task.Title)
 }
 
 func DenyTaskPost(c echo.Context) error {
@@ -161,7 +166,6 @@ func getFilterParams(c echo.Context) (*tasks.FilterBy, error) {
 	var err error
 	by.Search = c.QueryParam("search")
 	by.Date = c.QueryParam("date")
-	by.Name = c.QueryParam("name")
 	by.Difficulty = c.QueryParam("difficulty")
 	by.Page, err = strconv.Atoi(c.QueryParam("page"))
 	by.NotPublished = c.QueryParam("not-published")
