@@ -348,7 +348,7 @@ values (1, 5, CURRENT_TIMESTAMP, 'python', 'public solution', true, 'def Median(
 
 insert into tasks (author_id, approver_id, title, difficulty, is_published, added_on, text)
 values (1, 1, 'Roman numbers', 'medium', true, CURRENT_TIMESTAMP,
-        '<p>Write a function named "Rome" that converts Arabic numbers into Roman. For examaple:</p>' ||
+        '<p>Write a function named "Rome" that converts Roman numbers into Arabic. For examaple:</p>' ||
         '<p>II -> 2</p><p>MCMXCIV -> 1994</p>');
 
 insert into tests (last_modified, final, name, public, user_id, task_id, language, code)
